@@ -1,0 +1,22 @@
+# Enrique
+
+Landing privada para acceder a las webs publicadas en los repositorios de `enriqwe`.
+
+## Ejecutar
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+python dashboard_server.py init-user enriqwe@gmail.com 'CAMBIA_ESTA_CONTRASENA'
+./start_dashboard.sh 8090
+```
+
+La aplicacion incluye:
+
+- login con usuario y contrasena;
+- usuario inicial configurable con `init-user`;
+- recuperacion o alta inicial mediante enlace enviado por email;
+- landing visual con accesos a Alexia, Gestion de Gastos y el resto de webs publicadas.
+
+La parte de login necesita servidor Python. GitHub Pages solo sirve HTML estatico y no puede validar contrasenas ni enviar emails por si mismo.
