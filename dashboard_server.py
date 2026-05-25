@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import json
 import sys
 import urllib.error
 import urllib.request
@@ -13,9 +14,10 @@ from auth_core import AuthManager, init_user_from_cli
 BASE_DIR = Path(__file__).resolve().parent
 SITES_DIR = BASE_DIR / "sites"
 STATIC_DASHBOARDS = {
-    "alexia": Path("/home/flow/alexia-bot/facturas-repository"),
+    "facturas": Path("/home/flow/alexia-bot/facturas-repository"),
     "gastos": Path("/home/flow/expenses-bot/gastos-repository"),
 }
+COMUNICADOS_FILE = Path("/home/flow/alexia-bot/repository/comunicados.json")
 
 PROXIES = {
     "gastos": "http://127.0.0.1:8081",
@@ -39,11 +41,19 @@ SECTIONS = [
         "items": [
             {
                 "key": "alexia",
-                "name": "Alexia",
-                "description": "Facturas y comunicados del colegio.",
+                "name": "Comunicados Alexia",
+                "description": "Mensajes del colegio con texto completo.",
                 "url": "/alexia/",
                 "repo": "https://github.com/enriqwe/Alexia",
                 "accent": "#14b8a6",
+            },
+            {
+                "key": "facturas-alexia",
+                "name": "Facturas Alexia",
+                "description": "Dashboard de facturas del colegio con PDFs.",
+                "url": "/facturas/",
+                "repo": "https://github.com/enriqwe/Alexia",
+                "accent": "#0f766e",
             },
             {
                 "key": "gastos",
@@ -171,6 +181,7 @@ SECTIONS = [
 
 FEATURED = [
     {"key": "alexia", "name": "Alexia", "url": "/alexia/", "label": "Colegio"},
+    {"key": "facturas-alexia", "name": "Facturas", "url": "/facturas/", "label": "Colegio"},
     {"key": "gastos", "name": "Gastos", "url": "/gastos/", "label": "Finanzas"},
     {"key": "editor-mapas-v2", "name": "Mapas v2", "url": "/site/editor-mapas-v2/", "label": "Tool"},
     {"key": "juegos", "name": "Juegos", "url": "#juegos", "label": "Seccion"},
@@ -522,6 +533,108 @@ PERMISSIONS_HTML = """<!doctype html>
 </html>"""
 
 
+COMUNICADOS_HTML = """<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comunicados Alexia</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0c111d; --panel:#121826; --line:#273244; --text:#f3f6fb; --muted:#9aa7bb; --brand:#e8b44f; --ok:#12b981; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:linear-gradient(135deg,#0c111d,#141b2a 52%,#0c111d); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:start; gap:16px; padding:22px clamp(16px,4vw,44px); background:rgba(12,17,29,.88); border-bottom:1px solid rgba(148,163,184,.18); position:sticky; top:0; z-index:5; }
+    h1 { margin:0; font-size:clamp(24px,4vw,38px); letter-spacing:0; }
+    main { width:min(1240px,calc(100vw - 32px)); margin:24px auto 54px; }
+    a { color:var(--text); }
+    .back { border:1px solid var(--line); border-radius:10px; padding:10px 12px; text-decoration:none; background:rgba(18,24,38,.86); font-weight:800; white-space:nowrap; }
+    .note { color:var(--muted); line-height:1.45; margin-top:6px; }
+    .toolbar { display:grid; grid-template-columns:minmax(0,1fr) 190px 170px; gap:10px; margin-bottom:14px; }
+    input, select { width:100%; border:1px solid var(--line); background:rgba(12,17,29,.78); color:var(--text); border-radius:10px; padding:11px 12px; }
+    .list { display:grid; gap:12px; }
+    details { border:1px solid var(--line); background:rgba(18,24,38,.88); border-radius:8px; padding:14px; }
+    summary { cursor:pointer; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+    .row { display:grid; grid-template-columns:120px minmax(0,1fr) 160px; gap:14px; align-items:start; }
+    .date, .from, .flag { color:var(--muted); font-size:13px; }
+    .title { font-weight:850; font-size:18px; line-height:1.25; }
+    .body { white-space:pre-wrap; color:#dce6fb; line-height:1.5; border-top:1px solid rgba(148,163,184,.16); margin-top:13px; padding-top:13px; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .chip { border:1px solid var(--line); background:rgba(12,17,29,.78); color:var(--muted); border-radius:999px; padding:4px 8px; font-size:12px; }
+    @media(max-width:780px){ header{flex-direction:column;} .toolbar{grid-template-columns:1fr;} .row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Comunicados Alexia</h1>
+      <div class="note">{{ comunicados|length }} comunicados indexados · actualizado {{ updated_at }}</div>
+    </div>
+    <a class="back" href="/">Volver</a>
+  </header>
+  <main>
+    <div class="toolbar">
+      <input id="q" placeholder="Buscar por titulo, texto, remitente...">
+      <select id="flag">
+        <option value="">Todos</option>
+        <option value="action">Requieren accion</option>
+        <option value="calendar">Calendario</option>
+        <option value="review">Pendientes de revisar</option>
+      </select>
+      <select id="sender">
+        <option value="">Todos los remitentes</option>
+        {% for sender in senders %}<option value="{{ sender }}">{{ sender }}</option>{% endfor %}
+      </select>
+    </div>
+    <section class="list" id="list">
+      {% for item in comunicados %}
+      <details data-text="{{ (item.title ~ ' ' ~ item.from ~ ' ' ~ item.detailText)|lower|e }}" data-sender="{{ item.from|e }}" data-action="{{ item.flags.requiresAction }}" data-calendar="{{ item.flags.calendar }}" data-review="{{ item.flags.needsHumanReview }}">
+        <summary>
+          <div class="row">
+            <div class="date">{{ item.dateIso or item.dateText }}</div>
+            <div>
+              <div class="title">{{ item.title }}</div>
+              <div class="from">{{ item.from }}</div>
+            </div>
+            <div class="flag">{{ item.source }}</div>
+          </div>
+        </summary>
+        <div class="chips">
+          {% if item.flags.requiresAction %}<span class="chip">Accion</span>{% endif %}
+          {% if item.flags.calendar %}<span class="chip">Calendario</span>{% endif %}
+          {% if item.flags.needsHumanReview %}<span class="chip">Revisar</span>{% endif %}
+          {% for tag in item.flags.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
+        </div>
+        <div class="body">{{ item.detailText }}</div>
+      </details>
+      {% endfor %}
+    </section>
+  </main>
+  <script>
+    const q = document.getElementById("q");
+    const flag = document.getElementById("flag");
+    const sender = document.getElementById("sender");
+    const rows = [...document.querySelectorAll("details")];
+    function applyFilters() {
+      const query = q.value.trim().toLowerCase();
+      const selectedFlag = flag.value;
+      const selectedSender = sender.value;
+      rows.forEach((row) => {
+        const okQuery = !query || row.dataset.text.includes(query);
+        const okSender = !selectedSender || row.dataset.sender === selectedSender;
+        let okFlag = true;
+        if (selectedFlag === "action") okFlag = row.dataset.action === "True";
+        if (selectedFlag === "calendar") okFlag = row.dataset.calendar === "True";
+        if (selectedFlag === "review") okFlag = row.dataset.review === "True";
+        row.style.display = okQuery && okSender && okFlag ? "" : "none";
+      });
+    }
+    [q, flag, sender].forEach((el) => el.addEventListener("input", applyFilters));
+  </script>
+</body>
+</html>"""
+
+
 def all_access_items() -> list[dict]:
     items = []
     for section in SECTIONS:
@@ -569,8 +682,13 @@ def ensure_seed_users() -> None:
         return
     auth.ensure_user_with_password_hash(GABI_EMAIL, admin["password_hash"], role="user", confirmed=True)
     all_keys = [item["key"] for item in all_access_items() if item["key"] != "enriqwe-landing"]
-    if not auth.permissions_for(GABI_EMAIL):
+    gabi_permissions = auth.permissions_for(GABI_EMAIL)
+    if not gabi_permissions:
         auth.set_permissions(GABI_EMAIL, all_keys)
+    else:
+        missing_default_keys = {"facturas-alexia"} - gabi_permissions
+        if missing_default_keys:
+            auth.set_permissions(GABI_EMAIL, sorted(gabi_permissions | missing_default_keys))
 
 
 ensure_seed_users()
@@ -610,6 +728,27 @@ def update_permissions():
         return redirect(url_for("permissions"))
     auth.set_permissions(email, request.form.getlist("access_key"))
     return redirect(url_for("permissions"))
+
+
+def comunicados_data():
+    if not COMUNICADOS_FILE.exists():
+        return {"updatedAt": "sin datos", "comunicados": []}
+    data = json.loads(COMUNICADOS_FILE.read_text(encoding="utf-8"))
+    data.setdefault("comunicados", [])
+    for item in data["comunicados"]:
+        item.setdefault("flags", {})
+        item["flags"].setdefault("requiresAction", False)
+        item["flags"].setdefault("calendar", False)
+        item["flags"].setdefault("needsHumanReview", False)
+        item["flags"].setdefault("tags", [])
+        item.setdefault("title", "")
+        item.setdefault("from", "")
+        item.setdefault("detailText", "")
+        item.setdefault("dateIso", "")
+        item.setdefault("dateText", "")
+        item.setdefault("source", "alexia")
+    data["comunicados"].sort(key=lambda item: item.get("dateIso") or item.get("dateText") or "", reverse=True)
+    return data
 
 
 def safe_site_path(slug: str, path: str):
@@ -680,11 +819,40 @@ def proxy_request(base_url: str, path: str = ""):
 
 
 @app.get("/alexia/")
-@app.get("/alexia/<path:path>")
 @auth.require_login
-def alexia_dashboard(path: str = "index.html"):
+def alexia_comunicados():
     require_access("alexia")
-    return serve_static_dashboard("alexia", path or "index.html")
+    data = comunicados_data()
+    senders = sorted({item.get("from", "") for item in data["comunicados"] if item.get("from")})
+    return render_template_string(
+        COMUNICADOS_HTML,
+        comunicados=data["comunicados"],
+        updated_at=data.get("updatedAt", "sin datos"),
+        senders=senders,
+    )
+
+
+@app.get("/facturas/")
+@app.get("/facturas/<path:path>")
+@auth.require_login
+def facturas_dashboard(path: str = "index.html"):
+    require_access("facturas-alexia")
+    return serve_static_dashboard("facturas", path or "index.html")
+
+
+@app.get("/alexia/facturas/")
+@app.get("/alexia/facturas/<path:path>")
+@auth.require_login
+def alexia_facturas_alias(path: str = ""):
+    require_access("facturas-alexia")
+    return redirect(f"/facturas/{path}")
+
+
+@app.get("/alexia/pdf/<path:path>")
+@auth.require_login
+def alexia_pdf_legacy(path: str):
+    require_access("facturas-alexia")
+    return serve_static_dashboard("facturas", f"pdf/{path}")
 
 
 @app.get("/gastos/")
