@@ -143,14 +143,6 @@ SECTIONS = [
                 "repo": "https://github.com/enriqwe/Cosmotablas1",
                 "accent": "#7c3aed",
             },
-            {
-                "key": "cosmotablas",
-                "name": "Cosmotablas",
-                "description": "Repositorio de Cosmotablas.",
-                "url": "https://github.com/enriqwe/Cosmotablas",
-                "repo": "https://github.com/enriqwe/Cosmotablas",
-                "accent": "#0891b2",
-            },
         ],
     },
     {
@@ -166,14 +158,6 @@ SECTIONS = [
                 "url": "/site/regulacion/",
                 "repo": "https://github.com/enriqwe/Regulaci-n",
                 "accent": "#64748b",
-            },
-            {
-                "key": "enriqwe-landing",
-                "name": "Enriqwe landing",
-                "description": "Repositorio de esta landing privada.",
-                "url": "https://github.com/enriqwe/enriqwe",
-                "repo": "https://github.com/enriqwe/enriqwe",
-                "accent": "#475569",
             },
         ],
     },
@@ -218,13 +202,15 @@ LANDING_HTML = """<!doctype html>
       --brand: #e8b44f;
       --ok: #12b981;
       --danger: #ef4444;
+      --glow: rgba(232,180,79,.24);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       background:
-        linear-gradient(180deg, rgba(232,180,79,.10), transparent 320px),
+        radial-gradient(circle at 18% 0%, rgba(232,180,79,.16), transparent 28%),
+        radial-gradient(circle at 88% 12%, rgba(18,185,129,.12), transparent 24%),
         linear-gradient(135deg, #0c111d 0%, #141b2a 48%, #0c111d 100%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -286,7 +272,7 @@ LANDING_HTML = """<!doctype html>
     }
     .summary, .quick, .section {
       border: 1px solid var(--line);
-      background: rgba(18,24,38,.86);
+      background: linear-gradient(180deg, rgba(24,33,50,.9), rgba(18,24,38,.84));
       border-radius: 8px;
       box-shadow: 0 18px 50px rgba(0,0,0,.24);
     }
@@ -308,7 +294,7 @@ LANDING_HTML = """<!doctype html>
       padding: 14px 15px;
       font-weight: 800;
     }
-    .quick a:hover, .card:hover { border-color: rgba(232,180,79,.55); transform: translateY(-1px); }
+    .quick a:hover, .card:hover { border-color: rgba(232,180,79,.55); transform: translateY(-2px); }
     .section { margin-top: 18px; padding: 18px; scroll-margin-top: 102px; }
     .section-head {
       display: flex;
@@ -332,21 +318,23 @@ LANDING_HTML = """<!doctype html>
       font-weight: 800;
       font-size: 13px;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
     .card {
-      min-height: 176px;
+      min-height: 184px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(24,33,50,.95), rgba(15,21,34,.94));
+      background:
+        radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 34%),
+        linear-gradient(180deg, rgba(24,33,50,.96), rgba(15,21,34,.94));
       border-radius: 8px;
       padding: 16px;
       text-decoration: none;
       color: var(--text);
       position: relative;
       overflow: hidden;
-      transition: border-color .16s ease, transform .16s ease;
+      transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
     }
     .card::before {
       content: "";
@@ -355,22 +343,34 @@ LANDING_HTML = """<!doctype html>
       height: 5px;
       background: var(--accent);
     }
-    .card h3 { margin: 10px 0 8px; font-size: 20px; letter-spacing: 0; }
-    .card p { margin: 0; color: var(--muted); line-height: 1.45; }
-    .actions { display: flex; gap: 10px; margin-top: 18px; }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 38px;
-      padding: 9px 11px;
+    .card:hover { box-shadow: 0 20px 60px color-mix(in srgb, var(--accent) 16%, rgba(0,0,0,.25)); }
+    .card-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 6px; }
+    .app-mark {
+      width: 46px;
+      height: 46px;
       border-radius: 8px;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: #07111f;
+      font-size: 21px;
+      font-weight: 950;
+      box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
     }
-    .primary { background: var(--accent); color: #07111f; }
-    .secondary { border: 1px solid var(--line); color: var(--text); background: rgba(12,17,29,.74); }
+    .arrow {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(12,17,29,.58);
+      color: var(--text);
+      font-weight: 950;
+    }
+    .card h3 { margin: 16px 0 8px; font-size: 21px; letter-spacing: 0; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.45; }
+    .open-label { color: var(--text); font-weight: 850; margin-top: 18px; font-size: 14px; }
     .empty {
       border: 1px solid var(--line);
       background: rgba(18,24,38,.86);
@@ -430,16 +430,17 @@ LANDING_HTML = """<!doctype html>
       </div>
       <div class="grid">
         {% for app in section["items"] %}
-        <article class="card" style="--accent: {{ app.accent }}">
+        <a class="card" href="{{ app.url }}" style="--accent: {{ app.accent }}" aria-label="Abrir {{ app.name }}">
           <div>
+            <div class="card-top">
+              <div class="app-mark">{{ app.name[:1] }}</div>
+              <div class="arrow">-></div>
+            </div>
             <h3>{{ app.name }}</h3>
             <p>{{ app.description }}</p>
           </div>
-          <div class="actions">
-            <a class="button primary" href="{{ app.url }}">Abrir</a>
-            <a class="button secondary" href="{{ app.repo }}">Repo</a>
-          </div>
-        </article>
+          <div class="open-label">Abrir</div>
+        </a>
         {% endfor %}
       </div>
     </section>
