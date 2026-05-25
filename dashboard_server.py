@@ -5,7 +5,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from flask import Flask, Response, abort, render_template_string, request, send_from_directory
+from flask import Flask, Response, abort, redirect, render_template_string, request, send_from_directory, session, url_for
 
 from auth_core import AuthManager, init_user_from_cli
 
@@ -26,6 +26,10 @@ auth = AuthManager(BASE_DIR, "Enrique")
 auth.init_app(app)
 
 
+ADMIN_EMAIL = "enriqwe@gmail.com"
+GABI_EMAIL = "emailsdegabi@gmail.com"
+
+
 SECTIONS = [
     {
         "id": "familia",
@@ -34,6 +38,7 @@ SECTIONS = [
         "accent": "#12b981",
         "items": [
             {
+                "key": "alexia",
                 "name": "Alexia",
                 "description": "Facturas y comunicados del colegio.",
                 "url": "/alexia/",
@@ -41,6 +46,7 @@ SECTIONS = [
                 "accent": "#14b8a6",
             },
             {
+                "key": "gastos",
                 "name": "Control de gastos",
                 "description": "Dashboard de movimientos y categorias.",
                 "url": "/gastos/",
@@ -56,6 +62,7 @@ SECTIONS = [
         "accent": "#3b82f6",
         "items": [
             {
+                "key": "editor-mapas-v2",
                 "name": "Editor de Mapas v2",
                 "description": "Herramienta visual para crear mapas.",
                 "url": "/site/editor-mapas-v2/",
@@ -63,6 +70,7 @@ SECTIONS = [
                 "accent": "#2563eb",
             },
             {
+                "key": "editor-mapas",
                 "name": "Editor de Mapas",
                 "description": "Version anterior del editor de mapas.",
                 "url": "/site/editor-mapas/",
@@ -70,6 +78,7 @@ SECTIONS = [
                 "accent": "#0f766e",
             },
             {
+                "key": "canvas",
                 "name": "Canvas",
                 "description": "Canvas infinito para presentaciones.",
                 "url": "/site/canvas/",
@@ -77,6 +86,7 @@ SECTIONS = [
                 "accent": "#be185d",
             },
             {
+                "key": "calendario",
                 "name": "Calendario",
                 "description": "Aplicacion de calendario publicada.",
                 "url": "/site/calendario/",
@@ -92,6 +102,7 @@ SECTIONS = [
         "accent": "#ef4444",
         "items": [
             {
+                "key": "mision-cuerpo-humano",
                 "name": "Mision cuerpo humano",
                 "description": "Juego educativo del cuerpo humano.",
                 "url": "/site/mision-cuerpo-humano/",
@@ -99,6 +110,7 @@ SECTIONS = [
                 "accent": "#dc2626",
             },
             {
+                "key": "juego-frances",
                 "name": "Juego Frances",
                 "description": "Aprende vocabulario de frances.",
                 "url": "/site/juego-frances/",
@@ -106,6 +118,7 @@ SECTIONS = [
                 "accent": "#2563eb",
             },
             {
+                "key": "aprende-a-escribir",
                 "name": "Aprende a escribir",
                 "description": "Practica de escritura con ordenador.",
                 "url": "/site/aprende-a-escribir/",
@@ -113,6 +126,7 @@ SECTIONS = [
                 "accent": "#16a34a",
             },
             {
+                "key": "cosmotablas1",
                 "name": "Cosmotablas1",
                 "description": "Aprende a multiplicar en el espacio.",
                 "url": "https://cosmotablas1.vercel.app",
@@ -120,6 +134,7 @@ SECTIONS = [
                 "accent": "#7c3aed",
             },
             {
+                "key": "cosmotablas",
                 "name": "Cosmotablas",
                 "description": "Repositorio de Cosmotablas.",
                 "url": "https://github.com/enriqwe/Cosmotablas",
@@ -135,6 +150,7 @@ SECTIONS = [
         "accent": "#64748b",
         "items": [
             {
+                "key": "regulacion",
                 "name": "Regulacion",
                 "description": "Proyecto publicado en GitHub Pages.",
                 "url": "/site/regulacion/",
@@ -142,6 +158,7 @@ SECTIONS = [
                 "accent": "#64748b",
             },
             {
+                "key": "enriqwe-landing",
                 "name": "Enriqwe landing",
                 "description": "Repositorio de esta landing privada.",
                 "url": "https://github.com/enriqwe/enriqwe",
@@ -153,11 +170,23 @@ SECTIONS = [
 ]
 
 FEATURED = [
-    ("Alexia", "/alexia/", "Colegio"),
-    ("Gastos", "/gastos/", "Finanzas"),
-    ("Mapas v2", "/site/editor-mapas-v2/", "Tool"),
-    ("Juegos", "#juegos", "Seccion"),
+    {"key": "alexia", "name": "Alexia", "url": "/alexia/", "label": "Colegio"},
+    {"key": "gastos", "name": "Gastos", "url": "/gastos/", "label": "Finanzas"},
+    {"key": "editor-mapas-v2", "name": "Mapas v2", "url": "/site/editor-mapas-v2/", "label": "Tool"},
+    {"key": "juegos", "name": "Juegos", "url": "#juegos", "label": "Seccion"},
 ]
+
+
+SITE_ACCESS = {
+    "aprende-a-escribir": "aprende-a-escribir",
+    "calendario": "calendario",
+    "canvas": "canvas",
+    "editor-mapas": "editor-mapas",
+    "editor-mapas-v2": "editor-mapas-v2",
+    "juego-frances": "juego-frances",
+    "mision-cuerpo-humano": "mision-cuerpo-humano",
+    "regulacion": "regulacion",
+}
 
 
 LANDING_HTML = """<!doctype html>
@@ -225,6 +254,17 @@ LANDING_HTML = """<!doctype html>
       font-weight: 700;
       cursor: pointer;
     }
+    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .admin-link {
+      border: 1px solid var(--line);
+      background: rgba(17,24,39,.8);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .user-chip { color: var(--muted); font-size: 13px; }
     main { width: min(1220px, calc(100vw - 32px)); margin: 28px auto 54px; }
     .hero {
       display: grid;
@@ -320,11 +360,19 @@ LANDING_HTML = """<!doctype html>
     }
     .primary { background: var(--accent); color: #07111f; }
     .secondary { border: 1px solid var(--line); color: var(--text); background: rgba(12,17,29,.74); }
+    .empty {
+      border: 1px solid var(--line);
+      background: rgba(18,24,38,.86);
+      border-radius: 8px;
+      padding: 22px;
+      color: var(--muted);
+    }
     @media (max-width: 760px) {
       header { align-items: flex-start; padding: 16px; }
       .hero { grid-template-columns: 1fr; }
       .section-head { align-items: flex-start; flex-direction: column; }
       .subtitle { font-size: 13px; }
+      .top-actions { justify-content: flex-start; width: 100%; }
       .logout { padding: 9px 10px; }
     }
   </style>
@@ -338,7 +386,11 @@ LANDING_HTML = """<!doctype html>
         <div class="subtitle">Panel privado de accesos</div>
       </div>
     </div>
-    <form method="post" action="/logout"><button class="logout" type="submit">Salir</button></form>
+    <div class="top-actions">
+      <span class="user-chip">{{ current_user }}</span>
+      {% if is_admin %}<a class="admin-link" href="/permissions">Permisos</a>{% endif %}
+      <form method="post" action="/logout"><button class="logout" type="submit">Salir</button></form>
+    </div>
   </header>
   <main>
     <section class="hero">
@@ -348,11 +400,14 @@ LANDING_HTML = """<!doctype html>
       </div>
       <nav class="quick" aria-label="Accesos principales">
         <div class="quick-title">Accesos rapidos</div>
-        {% for name, url, label in featured %}
-        <a href="{{ url }}"><span>{{ name }}</span><small>{{ label }} -></small></a>
+        {% for item in featured %}
+        <a href="{{ item.url }}"><span>{{ item.name }}</span><small>{{ item.label }} -></small></a>
         {% endfor %}
       </nav>
     </section>
+    {% if not sections %}
+    <div class="empty">Tu usuario no tiene webs asignadas todavía.</div>
+    {% endif %}
     {% for section in sections %}
     <section class="section" id="{{ section.id }}" style="--section-accent: {{ section.accent }}" aria-labelledby="{{ section.id }}-title">
       <div class="section-head">
@@ -383,10 +438,178 @@ LANDING_HTML = """<!doctype html>
 </html>"""
 
 
+PERMISSIONS_HTML = """<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Permisos · Enrique</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0c111d; --panel:#121826; --line:#273244; --text:#f3f6fb; --muted:#9aa7bb; --brand:#e8b44f; --ok:#12b981; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:linear-gradient(135deg,#0c111d,#141b2a 52%,#0c111d); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:22px clamp(16px,4vw,44px); background:rgba(12,17,29,.88); border-bottom:1px solid rgba(148,163,184,.18); position:sticky; top:0; z-index:5; }
+    h1 { margin:0; font-size:clamp(24px,4vw,38px); letter-spacing:0; }
+    a { color:var(--text); }
+    main { width:min(1180px,calc(100vw - 32px)); margin:26px auto 54px; }
+    .back { border:1px solid var(--line); border-radius:10px; padding:10px 12px; text-decoration:none; background:rgba(18,24,38,.86); font-weight:800; }
+    .panel { border:1px solid var(--line); background:rgba(18,24,38,.88); border-radius:8px; padding:18px; margin-top:16px; }
+    .user-head { display:flex; justify-content:space-between; align-items:start; gap:16px; border-bottom:1px solid rgba(148,163,184,.16); padding-bottom:14px; margin-bottom:14px; }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .email { font-size:20px; font-weight:850; }
+    .role { color:var(--muted); margin-top:4px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
+    label { display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:rgba(12,17,29,.72); border-radius:8px; padding:12px; min-height:48px; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:var(--ok); }
+    button { border:0; border-radius:10px; padding:11px 14px; background:var(--brand); color:#17120a; font-weight:900; cursor:pointer; }
+    button.secondary { border:1px solid var(--line); background:rgba(12,17,29,.72); color:var(--text); }
+    .disabled { opacity:.64; }
+    .note { color:var(--muted); line-height:1.5; }
+    @media(max-width:760px){ header{align-items:flex-start; flex-direction:column;} .user-head{flex-direction:column;} }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Gestion de permisos</h1>
+      <div class="note">Solo visible para administradores.</div>
+    </div>
+    <a class="back" href="/">Volver</a>
+  </header>
+  <main>
+    {% for user in users %}
+    <form class="panel" method="post">
+      <input type="hidden" name="email" value="{{ user.email }}">
+      <div class="user-head">
+        <div>
+          <div class="email">{{ user.email }}</div>
+          <div class="role">{{ "Administrador" if user.role == "admin" else "Usuario" }}</div>
+        </div>
+        {% if user.role != "admin" %}
+        <div class="controls">
+          <button class="secondary" type="button" data-action="all">Marcar todo</button>
+          <button class="secondary" type="button" data-action="none">Quitar todo</button>
+          <button type="submit">Guardar permisos</button>
+        </div>
+        {% endif %}
+      </div>
+      {% if user.role == "admin" %}
+      <div class="note">Los administradores tienen acceso completo y son los unicos que ven esta seccion.</div>
+      {% else %}
+      <div class="grid">
+        {% for access in access_list %}
+        <label>
+          <input type="checkbox" name="access_key" value="{{ access.key }}" {% if access.key in permissions.get(user.email, []) %}checked{% endif %}>
+          <span>{{ access.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </form>
+    {% endfor %}
+  </main>
+  <script>
+    document.querySelectorAll("button[data-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const checked = button.dataset.action === "all";
+        button.closest("form").querySelectorAll("input[type=checkbox]").forEach((input) => {
+          input.checked = checked;
+        });
+      });
+    });
+  </script>
+</body>
+</html>"""
+
+
+def all_access_items() -> list[dict]:
+    items = []
+    for section in SECTIONS:
+        items.extend(section["items"])
+    return items
+
+
+def allowed(access_key: str, permissions: set[str]) -> bool:
+    return "*" in permissions or access_key in permissions
+
+
+def visible_sections(email: str) -> list[dict]:
+    permissions = auth.permissions_for(email)
+    sections = []
+    for section in SECTIONS:
+        items = [item for item in section["items"] if allowed(item["key"], permissions)]
+        if items:
+            copy = dict(section)
+            copy["items"] = items
+            sections.append(copy)
+    return sections
+
+
+def visible_featured(email: str, sections: list[dict]) -> list[dict]:
+    permissions = auth.permissions_for(email)
+    visible_section_ids = {section["id"] for section in sections}
+    items = []
+    for item in FEATURED:
+        if item["key"] == "juegos":
+            if "juegos" in visible_section_ids:
+                items.append(item)
+        elif allowed(item["key"], permissions):
+            items.append(item)
+    return items
+
+
+def require_access(access_key: str):
+    if not allowed(access_key, auth.permissions_for(session.get("user_email"))):
+        abort(403)
+
+
+def ensure_seed_users() -> None:
+    admin = auth.user(ADMIN_EMAIL)
+    if not admin:
+        return
+    auth.ensure_user_with_password_hash(GABI_EMAIL, admin["password_hash"], role="user", confirmed=True)
+    all_keys = [item["key"] for item in all_access_items() if item["key"] != "enriqwe-landing"]
+    if not auth.permissions_for(GABI_EMAIL):
+        auth.set_permissions(GABI_EMAIL, all_keys)
+
+
+ensure_seed_users()
+
+
 @app.get("/")
 @auth.require_login
 def index():
-    return render_template_string(LANDING_HTML, sections=SECTIONS, featured=FEATURED)
+    current_user = session.get("user_email")
+    sections = visible_sections(current_user)
+    return render_template_string(
+        LANDING_HTML,
+        sections=sections,
+        featured=visible_featured(current_user, sections),
+        current_user=current_user,
+        is_admin=auth.is_admin(current_user),
+    )
+
+
+@app.get("/permissions")
+@auth.require_admin
+def permissions():
+    return render_template_string(
+        PERMISSIONS_HTML,
+        users=auth.users(),
+        access_list=all_access_items(),
+        permissions=auth.all_permissions(),
+    )
+
+
+@app.post("/permissions")
+@auth.require_admin
+def update_permissions():
+    email = request.form.get("email")
+    user = auth.user(email)
+    if not user or user["role"] == "admin":
+        return redirect(url_for("permissions"))
+    auth.set_permissions(email, request.form.getlist("access_key"))
+    return redirect(url_for("permissions"))
 
 
 def safe_site_path(slug: str, path: str):
@@ -407,6 +630,10 @@ def safe_site_path(slug: str, path: str):
 @app.get("/site/<slug>/<path:path>")
 @auth.require_login
 def site(slug: str, path: str = "index.html"):
+    access_key = SITE_ACCESS.get(slug)
+    if not access_key:
+        abort(404)
+    require_access(access_key)
     root, target = safe_site_path(slug, path)
     if target.name.startswith(".") or any(part.startswith(".") for part in target.relative_to(root).parts):
         abort(404)
@@ -456,6 +683,7 @@ def proxy_request(base_url: str, path: str = ""):
 @app.get("/alexia/<path:path>")
 @auth.require_login
 def alexia_dashboard(path: str = "index.html"):
+    require_access("alexia")
     return serve_static_dashboard("alexia", path or "index.html")
 
 
@@ -463,12 +691,14 @@ def alexia_dashboard(path: str = "index.html"):
 @app.get("/gastos/<path:path>")
 @auth.require_login
 def gastos_dashboard(path: str = "index.html"):
+    require_access("gastos")
     return serve_static_dashboard("gastos", path or "index.html")
 
 
 @app.route("/upload", methods=["POST"])
 @auth.require_login
 def gastos_upload_proxy():
+    require_access("gastos")
     return proxy_request(PROXIES["gastos"], "upload")
 
 

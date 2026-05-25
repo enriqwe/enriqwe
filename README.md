@@ -15,6 +15,8 @@ python dashboard_server.py init-user enriqwe@gmail.com 'CAMBIA_ESTA_CONTRASENA'
 La aplicacion incluye:
 
 - login con usuario y contrasena;
+- roles de usuario y administrador;
+- permisos por web para mostrar u ocultar accesos;
 - usuario inicial configurable con `init-user`;
 - recuperacion o alta inicial mediante enlace enviado por email;
 - landing visual con accesos a Alexia, Gestion de Gastos y el resto de webs publicadas;

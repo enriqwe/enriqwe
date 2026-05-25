@@ -12,6 +12,13 @@ from flask import Flask, flash, redirect, render_template_string, request, sessi
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
+ADMIN_EMAILS = {
+    email.strip().lower()
+    for email in os.environ.get("DASHBOARD_ADMIN_EMAILS", "enriqwe@gmail.com").split(",")
+    if email.strip()
+}
+
+
 LOGIN_HTML = """<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ title }}</title><style>
@@ -65,6 +72,7 @@ class AuthManager:
                 CREATE TABLE IF NOT EXISTS users (
                     email TEXT PRIMARY KEY,
                     password_hash TEXT,
+                    role TEXT NOT NULL DEFAULT 'user',
                     confirmed_at TEXT,
                     created_at TEXT NOT NULL
                 );
@@ -75,22 +83,37 @@ class AuthManager:
                     used_at TEXT,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS permissions (
+                    email TEXT NOT NULL,
+                    access_key TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(email, access_key),
+                    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
+                );
                 """
             )
+            columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+            if "role" not in columns:
+                conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+            for email in ADMIN_EMAILS:
+                conn.execute("UPDATE users SET role = 'admin' WHERE email = ?", (email,))
 
     def create_or_update_user(self, email: str, password: str, confirmed: bool = True) -> None:
         now = self.now()
         confirmed_at = now if confirmed else None
+        clean_email = self.clean_email(email)
+        role = "admin" if clean_email in ADMIN_EMAILS else "user"
         with self.connect() as conn:
             conn.execute(
                 """
-                INSERT INTO users(email, password_hash, confirmed_at, created_at)
-                VALUES(?, ?, ?, ?)
+                INSERT INTO users(email, password_hash, role, confirmed_at, created_at)
+                VALUES(?, ?, ?, ?, ?)
                 ON CONFLICT(email) DO UPDATE SET
                     password_hash=excluded.password_hash,
+                    role=CASE WHEN users.role = 'admin' THEN users.role ELSE excluded.role END,
                     confirmed_at=COALESCE(excluded.confirmed_at, users.confirmed_at)
                 """,
-                (self.clean_email(email), generate_password_hash(password), confirmed_at, now),
+                (clean_email, generate_password_hash(password), role, confirmed_at, now),
             )
 
     def require_login(self, view):
@@ -110,6 +133,7 @@ class AuthManager:
             if user and user["confirmed_at"] and check_password_hash(user["password_hash"], password):
                 session.clear()
                 session["user_email"] = email
+                session["user_role"] = user["role"]
                 return redirect(request.args.get("next") or url_for("index"))
             flash("Usuario o contraseña incorrectos.")
         body = """
@@ -175,6 +199,70 @@ class AuthManager:
     def user(self, email: str):
         with self.connect() as conn:
             return conn.execute("SELECT * FROM users WHERE email = ?", (self.clean_email(email),)).fetchone()
+
+    def users(self):
+        with self.connect() as conn:
+            return conn.execute("SELECT email, role, confirmed_at, created_at FROM users ORDER BY role, email").fetchall()
+
+    def is_admin(self, email: str | None = None) -> bool:
+        clean_email = self.clean_email(email)
+        user = self.user(clean_email)
+        return bool(user and user["role"] == "admin")
+
+    def ensure_user_with_password_hash(self, email: str, password_hash: str, role: str = "user", confirmed: bool = True) -> None:
+        clean_email = self.clean_email(email)
+        now = self.now()
+        confirmed_at = now if confirmed else None
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO users(email, password_hash, role, confirmed_at, created_at)
+                VALUES(?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    password_hash=excluded.password_hash,
+                    role=excluded.role,
+                    confirmed_at=COALESCE(users.confirmed_at, excluded.confirmed_at)
+                """,
+                (clean_email, password_hash, role, confirmed_at, now),
+            )
+
+    def require_admin(self, view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not session.get("user_email"):
+                return redirect(url_for("login", next=request.path))
+            if not self.is_admin(session.get("user_email")):
+                return self.page("Sin permiso", "<p>No tienes permiso para acceder a esta seccion.</p><div class='links'><a href='/'>Volver</a></div>"), 403
+            return view(*args, **kwargs)
+
+        return wrapped
+
+    def set_permissions(self, email: str, access_keys: list[str]) -> None:
+        clean_email = self.clean_email(email)
+        now = self.now()
+        with self.connect() as conn:
+            conn.execute("DELETE FROM permissions WHERE email = ?", (clean_email,))
+            conn.executemany(
+                "INSERT INTO permissions(email, access_key, created_at) VALUES(?, ?, ?)",
+                [(clean_email, key, now) for key in sorted(set(access_keys))],
+            )
+
+    def permissions_for(self, email: str) -> set[str]:
+        user = self.user(email)
+        if not user:
+            return set()
+        if user["role"] == "admin":
+            return {"*"}
+        with self.connect() as conn:
+            return {row["access_key"] for row in conn.execute("SELECT access_key FROM permissions WHERE email = ?", (self.clean_email(email),))}
+
+    def all_permissions(self) -> dict[str, set[str]]:
+        with self.connect() as conn:
+            rows = conn.execute("SELECT email, access_key FROM permissions").fetchall()
+        permissions: dict[str, set[str]] = {}
+        for row in rows:
+            permissions.setdefault(row["email"], set()).add(row["access_key"])
+        return permissions
 
     def user_count(self) -> int:
         with self.connect() as conn:
