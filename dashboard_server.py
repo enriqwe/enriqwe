@@ -909,6 +909,7 @@ def proxy_request(base_url: str, path: str = ""):
         for key, value in request.headers.items()
         if key.lower() not in {"host", "content-length", "connection", "accept-encoding"}
     }
+    headers["X-OpenClaw-User"] = session.get("user_email", "")
     upstream_request = urllib.request.Request(url, data=data, headers=headers, method=request.method)
     try:
         with urllib.request.urlopen(upstream_request, timeout=30) as upstream:
@@ -975,6 +976,13 @@ def gastos_dashboard(path: str = "index.html"):
 def gastos_upload_proxy():
     require_access("gastos")
     return proxy_request(PROXIES["gastos"], "upload")
+
+
+@app.get("/upload-result")
+@auth.require_login
+def gastos_upload_result_proxy():
+    require_access("gastos")
+    return proxy_request(PROXIES["gastos"], "upload-result")
 
 
 def main():
