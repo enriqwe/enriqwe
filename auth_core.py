@@ -22,13 +22,18 @@ ADMIN_EMAILS = {
 LOGIN_HTML = """<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ title }}</title><style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080d1a;color:#eef4ff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-main{width:min(420px,calc(100vw - 32px));background:#111a2e;border:1px solid #263655;border-radius:18px;padding:24px;box-shadow:0 20px 70px #0008}
-h1{margin:0 0 8px;font-size:26px}p{color:#aebbdd;line-height:1.45}.msg{padding:10px 12px;border:1px solid #334360;background:#0d1426;border-radius:12px;margin:10px 0;color:#dbe6ff}
-label{display:block;margin:14px 0 6px;color:#c7d4f2;font-size:13px}input{width:100%;box-sizing:border-box;background:#0d1426;color:#eef4ff;border:1px solid #2f3d60;border-radius:12px;padding:12px}
-button{width:100%;margin-top:16px;background:#18a88f;color:#06131b;border:0;border-radius:12px;padding:12px;font-weight:800;cursor:pointer}
-a{color:#9cc8ff}.links{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:14px}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:34px 18px;background:#07101f;color:#f6fbff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,#07101f 0%,#091a38cc 28%,#06101f 100%),url('/static/login-bg.jpg') center bottom/cover no-repeat;z-index:-2}
+body:after{content:"";position:fixed;inset:0;background:radial-gradient(circle at 72% 24%,#39d4ff45,transparent 30%),radial-gradient(circle at 22% 80%,#7c3aed3a,transparent 34%),linear-gradient(90deg,#020817d9,#08152a85 46%,#020817e8);z-index:-1}
+main{width:min(438px,calc(100vw - 32px));margin-left:auto;margin-right:clamp(0px,8vw,120px);background:linear-gradient(160deg,#111b31e8,#071224d8);border:1px solid #ffffff24;border-radius:26px;padding:30px;box-shadow:0 28px 90px #000b,0 0 0 1px #5eead433 inset;backdrop-filter:blur(18px)}
+.login-kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:7px 10px;border:1px solid #68e8ff3b;border-radius:999px;background:#071a2dbf;color:#a8efff;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.login-kicker:before{content:"";width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 18px #22d3ee}
+h1{margin:0 0 8px;font-size:30px;line-height:1.05}p{color:#bfd0e8;line-height:1.5}.msg{padding:11px 13px;border:1px solid #70e0ff3d;background:#06182ccf;border-radius:14px;margin:16px 0;color:#e7f6ff}
+form{margin-top:18px}label{display:block;margin:15px 0 7px;color:#d7e7ff;font-size:13px;font-weight:750}input{width:100%;background:#071225d6;color:#f6fbff;border:1px solid #7dd3fc36;border-radius:14px;padding:13px 14px;outline:0;box-shadow:0 1px 0 #ffffff12 inset}input:focus{border-color:#67e8f9;box-shadow:0 0 0 4px #22d3ee20}
+button{width:100%;margin-top:18px;background:linear-gradient(135deg,#2dd4bf,#60a5fa);color:#04111f;border:0;border-radius:14px;padding:13px 14px;font-weight:900;cursor:pointer;box-shadow:0 16px 36px #0891b245}button:hover{filter:brightness(1.06)}
+a{color:#b7ecff}.links{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:14px}.links a{text-decoration-color:#b7ecff80;text-underline-offset:3px}
+@media (max-width:960px){body{place-items:end start;padding:18px 20px 28px;min-height:100svh}body:before{background:linear-gradient(180deg,#07101fe8 0%,#06101f6e 34%,#06101fe8 100%),url('/static/login-bg.jpg') center center/cover no-repeat}body:after{background:linear-gradient(180deg,#020817bf,#06101f99 48%,#020817f2)}main{width:min(350px,100%);margin:0;padding:24px 20px;border-radius:22px;justify-self:start}h1{font-size:24px}}
 </style></head><body><main>
+<div class="login-kicker">Enrique Hub</div>
 <h1>{{ title }}</h1>
 {% for message in get_flashed_messages() %}<div class="msg">{{ message }}</div>{% endfor %}
 {{ body|safe }}
@@ -90,6 +95,10 @@ class AuthManager:
                     PRIMARY KEY(email, access_key),
                     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
                 );
+                CREATE TABLE IF NOT EXISTS deleted_users (
+                    email TEXT PRIMARY KEY,
+                    deleted_at TEXT NOT NULL
+                );
                 """
             )
             columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
@@ -115,6 +124,7 @@ class AuthManager:
                 """,
                 (clean_email, generate_password_hash(password), role, confirmed_at, now),
             )
+            conn.execute("DELETE FROM deleted_users WHERE email = ?", (clean_email,))
 
     def require_login(self, view):
         @wraps(view)
@@ -204,6 +214,40 @@ class AuthManager:
         with self.connect() as conn:
             return conn.execute("SELECT email, role, confirmed_at, created_at FROM users ORDER BY role, email").fetchall()
 
+    def delete_user(self, email: str) -> bool:
+        clean_email = self.clean_email(email)
+        user = self.user(clean_email)
+        if not user or user["role"] == "admin":
+            return False
+        with self.connect() as conn:
+            conn.execute("DELETE FROM permissions WHERE email = ?", (clean_email,))
+            conn.execute("DELETE FROM password_links WHERE email = ?", (clean_email,))
+            conn.execute("DELETE FROM users WHERE email = ?", (clean_email,))
+            conn.execute(
+                "INSERT OR REPLACE INTO deleted_users(email, deleted_at) VALUES(?, ?)",
+                (clean_email, self.now()),
+            )
+        return True
+
+    def was_deleted(self, email: str) -> bool:
+        with self.connect() as conn:
+            row = conn.execute("SELECT 1 FROM deleted_users WHERE email = ?", (self.clean_email(email),)).fetchone()
+        return bool(row)
+
+    def set_user_password(self, email: str, password: str) -> bool:
+        clean_email = self.clean_email(email)
+        if len(password) < 6:
+            return False
+        user = self.user(clean_email)
+        if not user:
+            return False
+        with self.connect() as conn:
+            conn.execute(
+                "UPDATE users SET password_hash = ?, confirmed_at = COALESCE(confirmed_at, ?) WHERE email = ?",
+                (generate_password_hash(password), self.now(), clean_email),
+            )
+        return True
+
     def is_admin(self, email: str | None = None) -> bool:
         clean_email = self.clean_email(email)
         user = self.user(clean_email)
@@ -225,6 +269,7 @@ class AuthManager:
                 """,
                 (clean_email, password_hash, role, confirmed_at, now),
             )
+            conn.execute("DELETE FROM deleted_users WHERE email = ?", (clean_email,))
 
     def require_admin(self, view):
         @wraps(view)

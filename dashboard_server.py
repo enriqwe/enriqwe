@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from flask import Flask, Response, abort, redirect, render_template_string, request, send_from_directory, session, url_for
+from flask import Flask, Response, abort, flash, redirect, render_template_string, request, send_from_directory, session, url_for
 
 from auth_core import AuthManager, init_user_from_cli
 
@@ -46,6 +46,7 @@ SECTIONS = [
                 "url": "/alexia/",
                 "repo": "https://github.com/enriqwe/Alexia",
                 "accent": "#14b8a6",
+                "icon": "🔔",
             },
             {
                 "key": "facturas-alexia",
@@ -54,6 +55,7 @@ SECTIONS = [
                 "url": "/facturas/",
                 "repo": "https://github.com/enriqwe/Alexia",
                 "accent": "#0f766e",
+                "icon": "🧾",
             },
             {
                 "key": "gastos",
@@ -62,6 +64,7 @@ SECTIONS = [
                 "url": "/gastos/",
                 "repo": "https://github.com/enriqwe/Gestion-de-Gastos",
                 "accent": "#f59e0b",
+                "icon": "📊",
             },
         ],
     },
@@ -78,6 +81,7 @@ SECTIONS = [
                 "url": "/site/editor-mapas-v2/",
                 "repo": "https://github.com/enriqwe/Editor-de-Mapas-v2",
                 "accent": "#2563eb",
+                "icon": "🗺️",
             },
             {
                 "key": "editor-mapas",
@@ -86,6 +90,7 @@ SECTIONS = [
                 "url": "/site/editor-mapas/",
                 "repo": "https://github.com/enriqwe/Editor-de-Mapas",
                 "accent": "#0f766e",
+                "icon": "📍",
             },
             {
                 "key": "canvas",
@@ -94,6 +99,7 @@ SECTIONS = [
                 "url": "/site/canvas/",
                 "repo": "https://github.com/enriqwe/Canvas",
                 "accent": "#be185d",
+                "icon": "✏️",
             },
             {
                 "key": "calendario",
@@ -102,6 +108,7 @@ SECTIONS = [
                 "url": "/site/calendario/",
                 "repo": "https://github.com/enriqwe/Calendario",
                 "accent": "#0284c7",
+                "icon": "📅",
             },
         ],
     },
@@ -118,6 +125,7 @@ SECTIONS = [
                 "url": "/site/mision-cuerpo-humano/",
                 "repo": "https://github.com/enriqwe/mision-cuerpo-humano",
                 "accent": "#dc2626",
+                "icon": "🧠",
             },
             {
                 "key": "juego-frances",
@@ -126,6 +134,7 @@ SECTIONS = [
                 "url": "/site/juego-frances/",
                 "repo": "https://github.com/enriqwe/JuegoFrances",
                 "accent": "#2563eb",
+                "icon": "🇫🇷",
             },
             {
                 "key": "aprende-a-escribir",
@@ -134,6 +143,7 @@ SECTIONS = [
                 "url": "/site/aprende-a-escribir/",
                 "repo": "https://github.com/enriqwe/aprendeaescribir",
                 "accent": "#16a34a",
+                "icon": "✍️",
             },
             {
                 "key": "cosmotablas1",
@@ -142,6 +152,7 @@ SECTIONS = [
                 "url": "https://cosmotablas1.vercel.app",
                 "repo": "https://github.com/enriqwe/Cosmotablas1",
                 "accent": "#7c3aed",
+                "icon": "🚀",
             },
         ],
     },
@@ -158,6 +169,7 @@ SECTIONS = [
                 "url": "/site/regulacion/",
                 "repo": "https://github.com/enriqwe/Regulaci-n",
                 "accent": "#64748b",
+                "icon": "⚙️",
             },
         ],
     },
@@ -183,6 +195,21 @@ SITE_ACCESS = {
     "regulacion": "regulacion",
 }
 
+ICONS = {
+    "alexia": '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path>',
+    "facturas-alexia": '<path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path>',
+    "gastos": '<path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5"></path><path d="M12 16V8"></path><path d="M16 16v-9"></path>',
+    "editor-mapas-v2": '<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path>',
+    "editor-mapas": '<path d="M12 21s7-5 7-11a7 7 0 1 0-14 0c0 6 7 11 7 11z"></path><circle cx="12" cy="10" r="2"></circle>',
+    "canvas": '<path d="M4 20h16"></path><path d="M6 18l10-10 2 2L8 20H6v-2z"></path><path d="M14 6l2-2 4 4-2 2"></path>',
+    "calendario": '<rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M4 10h16"></path>',
+    "mision-cuerpo-humano": '<path d="M12 3a4 4 0 0 0-4 4v3a4 4 0 0 0 8 0V7a4 4 0 0 0-4-4z"></path><path d="M6 21v-3a6 6 0 0 1 12 0v3"></path><path d="M9 10h6"></path>',
+    "juego-frances": '<path d="M5 5h14v14H5z"></path><path d="M8 9h8"></path><path d="M8 13h5"></path><path d="M15 13l2 3"></path>',
+    "aprende-a-escribir": '<path d="M4 20h16"></path><path d="M7 16l8-8 3 3-8 8H7v-3z"></path><path d="M14 7l3 3"></path>',
+    "cosmotablas1": '<path d="M12 2c3 2 5 5 5 8 0 5-5 9-5 9s-5-4-5-9c0-3 2-6 5-8z"></path><path d="M9 21h6"></path><circle cx="12" cy="9" r="2"></circle>',
+    "regulacion": '<circle cx="12" cy="12" r="3"></circle><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><path d="M4.9 4.9l2.1 2.1"></path><path d="M17 17l2.1 2.1"></path><path d="M19.1 4.9 17 7"></path><path d="M7 17l-2.1 2.1"></path>',
+}
+
 
 LANDING_HTML = """<!doctype html>
 <html lang="es">
@@ -193,36 +220,51 @@ LANDING_HTML = """<!doctype html>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0c111d;
-      --panel: #121826;
-      --panel-2: #182132;
-      --line: #273244;
-      --text: #f3f6fb;
-      --muted: #9aa7bb;
-      --brand: #e8b44f;
-      --ok: #12b981;
-      --danger: #ef4444;
-      --glow: rgba(232,180,79,.24);
+      --bg: #080c16;
+      --panel: rgba(15, 23, 42, .78);
+      --panel-2: rgba(24, 33, 50, .76);
+      --line: rgba(148, 163, 184, .22);
+      --text: #f7fbff;
+      --muted: #a9b8ca;
+      --brand: #35d4ff;
+      --gold: #f3bf55;
+      --green: #37e0a3;
+      --pink: #ff6fb1;
+      --glow: rgba(53, 212, 255, .3);
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 18% 0%, rgba(232,180,79,.16), transparent 28%),
-        radial-gradient(circle at 88% 12%, rgba(18,185,129,.12), transparent 24%),
-        linear-gradient(135deg, #0c111d 0%, #141b2a 48%, #0c111d 100%);
+        radial-gradient(circle at 14% 12%, rgba(53,212,255,.2), transparent 25%),
+        radial-gradient(circle at 84% 8%, rgba(243,191,85,.16), transparent 24%),
+        radial-gradient(circle at 62% 88%, rgba(55,224,163,.14), transparent 28%),
+        linear-gradient(135deg, #080c16 0%, #12192a 46%, #090e19 100%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 80%);
     }
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 24px clamp(18px, 4vw, 48px);
-      border-bottom: 1px solid rgba(148,163,184,.18);
-      background: rgba(12,17,29,.86);
+      padding: 18px clamp(16px, 4vw, 44px);
+      border-bottom: 1px solid rgba(148,163,184,.14);
+      background: rgba(8,12,22,.78);
       backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
@@ -230,23 +272,24 @@ LANDING_HTML = """<!doctype html>
     }
     .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
     .mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
       display: grid;
       place-items: center;
-      background: var(--brand);
-      color: #17120a;
+      background: linear-gradient(135deg, var(--brand), var(--green));
+      color: #07111f;
       font-weight: 900;
-      font-size: 21px;
+      font-size: 22px;
+      box-shadow: 0 0 28px rgba(53,212,255,.28);
     }
-    h1 { margin: 0; font-size: clamp(24px, 4vw, 40px); letter-spacing: 0; }
+    h1 { margin: 0; font-size: clamp(23px, 4vw, 36px); letter-spacing: 0; }
     .subtitle { color: var(--muted); margin-top: 3px; font-size: 14px; }
     .logout {
       border: 1px solid var(--line);
-      background: rgba(17,24,39,.8);
+      background: rgba(15,23,42,.72);
       color: var(--text);
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 10px 12px;
       font-weight: 700;
       cursor: pointer;
@@ -254,137 +297,120 @@ LANDING_HTML = """<!doctype html>
     .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
     .admin-link {
       border: 1px solid var(--line);
-      background: rgba(17,24,39,.8);
+      background: linear-gradient(135deg, rgba(53,212,255,.14), rgba(243,191,85,.12));
       color: var(--text);
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 10px 12px;
       font-weight: 700;
       text-decoration: none;
     }
     .user-chip { color: var(--muted); font-size: 13px; }
-    main { width: min(1220px, calc(100vw - 32px)); margin: 28px auto 54px; }
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, .78fr);
-      gap: 18px;
-      align-items: stretch;
-      margin-bottom: 18px;
-    }
-    .summary, .quick, .section {
+    main { width: min(1220px, calc(100vw - 28px)); margin: 14px auto 40px; position: relative; z-index: 1; }
+    .section {
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(24,33,50,.9), rgba(18,24,38,.84));
-      border-radius: 8px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.24);
+      background: linear-gradient(180deg, rgba(24,33,50,.74), rgba(12,18,31,.78));
+      border-radius: 22px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.28);
+      backdrop-filter: blur(18px);
     }
-    .summary { padding: clamp(22px, 4vw, 38px); }
-    .summary h2 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 58px); line-height: 1.02; letter-spacing: 0; }
-    .summary p { margin: 0; color: var(--muted); max-width: 720px; line-height: 1.55; font-size: 16px; }
-    .quick { display: grid; align-content: center; gap: 10px; padding: 16px; }
-    .quick-title { color: var(--muted); font-size: 13px; font-weight: 800; text-transform: uppercase; }
-    .quick a {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      color: var(--text);
-      text-decoration: none;
-      border: 1px solid var(--line);
-      background: rgba(12,17,29,.74);
-      border-radius: 8px;
-      padding: 14px 15px;
-      font-weight: 800;
-    }
-    .quick a:hover, .card:hover { border-color: rgba(232,180,79,.55); transform: translateY(-2px); }
-    .section { margin-top: 18px; padding: 18px; scroll-margin-top: 102px; }
+    .card:hover { border-color: rgba(53,212,255,.55); transform: translateY(-3px); }
+    .section { margin-top: 14px; padding: clamp(14px, 2.4vw, 20px); scroll-margin-top: 100px; }
     .section-head {
       display: flex;
       justify-content: space-between;
-      gap: 18px;
-      align-items: end;
-      margin-bottom: 14px;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 12px;
       border-bottom: 1px solid rgba(148,163,184,.14);
-      padding-bottom: 14px;
+      padding-bottom: 12px;
     }
-    .section h2 { margin: 0; font-size: clamp(22px, 3vw, 32px); letter-spacing: 0; }
-    .section p { margin: 6px 0 0; color: var(--muted); line-height: 1.45; }
+    .section h2 { margin: 0; font-size: clamp(21px, 2.6vw, 29px); letter-spacing: 0; }
+    .section p { margin: 4px 0 0; color: var(--muted); line-height: 1.35; font-size: 14px; }
     .count {
       flex: 0 0 auto;
       color: var(--text);
       border: 1px solid var(--line);
       border-left: 5px solid var(--section-accent);
-      background: rgba(12,17,29,.7);
-      border-radius: 8px;
-      padding: 8px 10px;
+      background: rgba(8,12,22,.56);
+      border-radius: 999px;
+      padding: 7px 10px;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
     .card {
-      min-height: 184px;
+      min-height: 94px;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border: 1px solid var(--line);
+      align-items: center;
+      gap: 13px;
+      border: 1px solid rgba(148,163,184,.18);
       background:
-        radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 34%),
-        linear-gradient(180deg, rgba(24,33,50,.96), rgba(15,21,34,.94));
-      border-radius: 8px;
-      padding: 16px;
+        radial-gradient(circle at 98% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 28%),
+        linear-gradient(180deg, rgba(26,37,58,.92), rgba(10,16,28,.9));
+      border-radius: 16px;
+      padding: 13px 14px;
       text-decoration: none;
       color: var(--text);
       position: relative;
       overflow: hidden;
       transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
     }
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 5px;
-      background: var(--accent);
+    .card:hover { box-shadow: 0 16px 38px color-mix(in srgb, var(--accent) 14%, rgba(0,0,0,.28)); }
+    .card-main {
+      min-width: 0;
+      flex: 1 1 auto;
+      position: relative;
+      z-index: 1;
     }
-    .card:hover { box-shadow: 0 20px 60px color-mix(in srgb, var(--accent) 16%, rgba(0,0,0,.25)); }
-    .card-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 6px; }
     .app-mark {
-      width: 46px;
-      height: 46px;
-      border-radius: 8px;
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
-      background: var(--accent);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 88%, white), var(--accent));
       color: #07111f;
-      font-size: 21px;
-      font-weight: 950;
-      box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+      position: relative;
+      z-index: 1;
     }
-    .arrow {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(12,17,29,.58);
-      color: var(--text);
-      font-weight: 950;
+    .app-mark svg {
+      width: 23px;
+      height: 23px;
+      stroke: currentColor;
+      stroke-width: 2.3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
-    .card h3 { margin: 16px 0 8px; font-size: 21px; letter-spacing: 0; }
-    .card p { margin: 0; color: var(--muted); line-height: 1.45; }
-    .open-label { color: var(--text); font-weight: 850; margin-top: 18px; font-size: 14px; }
+    .card h3 { margin: 0 0 4px; font-size: 17px; letter-spacing: 0; line-height: 1.18; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.3; font-size: 13px; }
     .empty {
       border: 1px solid var(--line);
       background: rgba(18,24,38,.86);
-      border-radius: 8px;
+      border-radius: 18px;
       padding: 22px;
       color: var(--muted);
     }
     @media (max-width: 760px) {
-      header { align-items: flex-start; padding: 16px; }
-      .hero { grid-template-columns: 1fr; }
-      .section-head { align-items: flex-start; flex-direction: column; }
+      header { align-items: flex-start; flex-direction: column; padding: 14px; position: relative; }
+      .brand { width: 100%; }
+      .mark { width: 42px; height: 42px; border-radius: 14px; }
+      main { width: min(1220px, calc(100vw - 18px)); margin-top: 9px; }
+      .section { border-radius: 18px; padding: 13px; margin-top: 10px; }
+      .section-head { align-items: flex-start; flex-direction: column; gap: 8px; }
       .subtitle { font-size: 13px; }
       .top-actions { justify-content: flex-start; width: 100%; }
       .logout { padding: 9px 10px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { min-height: 78px; padding: 11px 12px; gap: 11px; }
+      .app-mark { width: 38px; height: 38px; border-radius: 12px; }
+      .app-mark svg { width: 20px; height: 20px; }
+      .card h3 { font-size: 16px; }
+      .card p { font-size: 12px; }
     }
   </style>
 </head>
@@ -404,18 +430,6 @@ LANDING_HTML = """<!doctype html>
     </div>
   </header>
   <main>
-    <section class="hero">
-      <div class="summary">
-        <h2>Todo a dos clics.</h2>
-        <p>Accesos privados a colegio, finanzas, tools y juegos. Las secciones estan pensadas para abrir rapido lo que necesitas sin buscar entre repositorios.</p>
-      </div>
-      <nav class="quick" aria-label="Accesos principales">
-        <div class="quick-title">Accesos rapidos</div>
-        {% for item in featured %}
-        <a href="{{ item.url }}"><span>{{ item.name }}</span><small>{{ item.label }} -></small></a>
-        {% endfor %}
-      </nav>
-    </section>
     {% if not sections %}
     <div class="empty">Tu usuario no tiene webs asignadas todavía.</div>
     {% endif %}
@@ -431,15 +445,15 @@ LANDING_HTML = """<!doctype html>
       <div class="grid">
         {% for app in section["items"] %}
         <a class="card" href="{{ app.url }}" style="--accent: {{ app.accent }}" aria-label="Abrir {{ app.name }}">
-          <div>
-            <div class="card-top">
-              <div class="app-mark">{{ app.name[:1] }}</div>
-              <div class="arrow">-></div>
-            </div>
+          <div class="app-mark">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {{ app.icon_svg|safe }}
+            </svg>
+          </div>
+          <div class="card-main">
             <h3>{{ app.name }}</h3>
             <p>{{ app.description }}</p>
           </div>
-          <div class="open-label">Abrir</div>
         </a>
         {% endfor %}
       </div>
@@ -457,68 +471,119 @@ PERMISSIONS_HTML = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Permisos · Enrique</title>
   <style>
-    :root { color-scheme: dark; --bg:#0c111d; --panel:#121826; --line:#273244; --text:#f3f6fb; --muted:#9aa7bb; --brand:#e8b44f; --ok:#12b981; }
+    :root { color-scheme: dark; --bg:#0c111d; --panel:#121826; --line:#273244; --text:#f3f6fb; --muted:#9aa7bb; --brand:#e8b44f; --ok:#12b981; --danger:#ef4444; }
     * { box-sizing: border-box; }
     body { margin:0; min-height:100vh; background:linear-gradient(135deg,#0c111d,#141b2a 52%,#0c111d); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
-    header { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:22px clamp(16px,4vw,44px); background:rgba(12,17,29,.88); border-bottom:1px solid rgba(148,163,184,.18); position:sticky; top:0; z-index:5; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:22px clamp(16px,4vw,44px); background:rgba(12,17,29,.9); border-bottom:1px solid rgba(148,163,184,.18); position:sticky; top:0; z-index:5; backdrop-filter:blur(16px); }
     h1 { margin:0; font-size:clamp(24px,4vw,38px); letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:18px; }
     a { color:var(--text); }
-    main { width:min(1180px,calc(100vw - 32px)); margin:26px auto 54px; }
+    main { width:min(1040px,calc(100vw - 28px)); margin:20px auto 54px; display:grid; gap:14px; }
     .back { border:1px solid var(--line); border-radius:10px; padding:10px 12px; text-decoration:none; background:rgba(18,24,38,.86); font-weight:800; }
-    .panel { border:1px solid var(--line); background:rgba(18,24,38,.88); border-radius:8px; padding:18px; margin-top:16px; }
-    .user-head { display:flex; justify-content:space-between; align-items:start; gap:16px; border-bottom:1px solid rgba(148,163,184,.16); padding-bottom:14px; margin-bottom:14px; }
-    .controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .email { font-size:20px; font-weight:850; }
-    .role { color:var(--muted); margin-top:4px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
-    label { display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:rgba(12,17,29,.72); border-radius:8px; padding:12px; min-height:48px; }
-    input[type=checkbox] { width:18px; height:18px; accent-color:var(--ok); }
-    button { border:0; border-radius:10px; padding:11px 14px; background:var(--brand); color:#17120a; font-weight:900; cursor:pointer; }
+    .panel, details.user { border:1px solid var(--line); background:rgba(18,24,38,.9); border-radius:8px; padding:14px; }
+    .create-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(160px,.8fr) auto; gap:10px; align-items:end; }
+    label.field { display:grid; gap:6px; color:var(--muted); font-size:13px; }
+    input[type=email], input[type=password] { width:100%; border:1px solid var(--line); background:rgba(12,17,29,.72); color:var(--text); border-radius:10px; padding:11px 12px; min-height:42px; }
+    button { border:0; border-radius:10px; padding:11px 14px; background:var(--brand); color:#17120a; font-weight:900; cursor:pointer; min-height:42px; }
     button.secondary { border:1px solid var(--line); background:rgba(12,17,29,.72); color:var(--text); }
-    .disabled { opacity:.64; }
-    .note { color:var(--muted); line-height:1.5; }
-    @media(max-width:760px){ header{align-items:flex-start; flex-direction:column;} .user-head{flex-direction:column;} }
+    button.danger { background:rgba(239,68,68,.16); color:#fecaca; border:1px solid rgba(239,68,68,.42); }
+    .note { color:var(--muted); line-height:1.45; }
+    .flash { border:1px solid rgba(232,180,79,.35); background:rgba(232,180,79,.12); border-radius:8px; padding:10px 12px; color:#ffe8b7; }
+    .list { display:grid; gap:10px; }
+    summary { cursor:pointer; list-style:none; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; }
+    summary::-webkit-details-marker { display:none; }
+    .identity { min-width:0; }
+    .email { font-size:17px; font-weight:850; overflow-wrap:anywhere; }
+    .meta { color:var(--muted); margin-top:4px; font-size:13px; }
+    .count { border:1px solid var(--line); color:#dce6fb; background:rgba(12,17,29,.72); border-radius:999px; padding:6px 10px; font-size:12px; white-space:nowrap; }
+    .body { border-top:1px solid rgba(148,163,184,.16); margin-top:13px; padding-top:13px; display:grid; gap:12px; }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; }
+    .perm { display:flex; align-items:center; gap:9px; border:1px solid var(--line); background:rgba(12,17,29,.72); border-radius:8px; padding:10px; min-height:42px; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:var(--ok); flex:0 0 auto; }
+    .inline-form { display:flex; gap:8px; flex-wrap:wrap; align-items:end; justify-content:flex-end; }
+    .inline-form .field { min-width:180px; flex:1 1 220px; }
+    .row-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+    @media(max-width:760px){
+      header{align-items:flex-start; flex-direction:column;}
+      .create-grid, .row-actions{grid-template-columns:1fr;}
+      summary{grid-template-columns:1fr;}
+      .controls,.inline-form{justify-content:stretch;}
+      button{width:100%;}
+    }
   </style>
 </head>
 <body>
   <header>
     <div>
       <h1>Gestion de permisos</h1>
-      <div class="note">Solo visible para administradores.</div>
+      <div class="note">{{ users|length }} usuarios · permisos colapsados por usuario.</div>
     </div>
     <a class="back" href="/">Volver</a>
   </header>
   <main>
-    {% for user in users %}
-    <form class="panel" method="post">
-      <input type="hidden" name="email" value="{{ user.email }}">
-      <div class="user-head">
-        <div>
-          <div class="email">{{ user.email }}</div>
-          <div class="role">{{ "Administrador" if user.role == "admin" else "Usuario" }}</div>
+    {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
+    <section class="panel">
+      <h2>Alta de usuario</h2>
+      <form class="create-grid" method="post">
+        <input type="hidden" name="operation" value="create">
+        <label class="field">Email<input name="email" type="email" autocomplete="email" required></label>
+        <label class="field">Contraseña<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+        <button type="submit">Crear usuario</button>
+      </form>
+    </section>
+
+    <section class="list">
+      {% for user in users %}
+      {% set user_permissions = permissions.get(user.email, []) %}
+      {% set permission_count = access_list|length if user.role == "admin" else user_permissions|length %}
+      <details class="user">
+        <summary>
+          <div class="identity">
+            <div class="email">{{ user.email }}</div>
+            <div class="meta">{{ "Administrador" if user.role == "admin" else "Usuario" }} · {{ "acceso completo" if user.role == "admin" else permission_count ~ " de " ~ access_list|length ~ " accesos" }}</div>
+          </div>
+          <span class="count">{{ permission_count }} permisos</span>
+        </summary>
+        <div class="body">
+          {% if user.role == "admin" %}
+          <div class="note">Los administradores tienen acceso completo y son los unicos que ven esta seccion.</div>
+          {% else %}
+          <form method="post">
+            <input type="hidden" name="operation" value="permissions">
+            <input type="hidden" name="email" value="{{ user.email }}">
+            <div class="controls">
+              <button class="secondary" type="button" data-action="all">Marcar todo</button>
+              <button class="secondary" type="button" data-action="none">Quitar todo</button>
+              <button type="submit">Guardar permisos</button>
+            </div>
+            <div class="grid">
+              {% for access in access_list %}
+              <label class="perm">
+                <input type="checkbox" name="access_key" value="{{ access.key }}" {% if access.key in user_permissions %}checked{% endif %}>
+                <span>{{ access.name }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </form>
+          <div class="row-actions">
+            <form class="inline-form" method="post">
+              <input type="hidden" name="operation" value="password">
+              <input type="hidden" name="email" value="{{ user.email }}">
+              <label class="field">Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+              <button class="secondary" type="submit">Resetear contraseña</button>
+            </form>
+            <form method="post" onsubmit="return confirm('¿Eliminar {{ user.email }}?');">
+              <input type="hidden" name="operation" value="delete">
+              <input type="hidden" name="email" value="{{ user.email }}">
+              <button class="danger" type="submit">Eliminar</button>
+            </form>
+          </div>
+          {% endif %}
         </div>
-        {% if user.role != "admin" %}
-        <div class="controls">
-          <button class="secondary" type="button" data-action="all">Marcar todo</button>
-          <button class="secondary" type="button" data-action="none">Quitar todo</button>
-          <button type="submit">Guardar permisos</button>
-        </div>
-        {% endif %}
-      </div>
-      {% if user.role == "admin" %}
-      <div class="note">Los administradores tienen acceso completo y son los unicos que ven esta seccion.</div>
-      {% else %}
-      <div class="grid">
-        {% for access in access_list %}
-        <label>
-          <input type="checkbox" name="access_key" value="{{ access.key }}" {% if access.key in permissions.get(user.email, []) %}checked{% endif %}>
-          <span>{{ access.name }}</span>
-        </label>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </form>
-    {% endfor %}
+      </details>
+      {% endfor %}
+    </section>
   </main>
   <script>
     document.querySelectorAll("button[data-action]").forEach((button) => {
@@ -651,7 +716,12 @@ def visible_sections(email: str) -> list[dict]:
     permissions = auth.permissions_for(email)
     sections = []
     for section in SECTIONS:
-        items = [item for item in section["items"] if allowed(item["key"], permissions)]
+        items = []
+        for item in section["items"]:
+            if allowed(item["key"], permissions):
+                visible_item = dict(item)
+                visible_item["icon_svg"] = ICONS.get(item["key"], ICONS["regulacion"])
+                items.append(visible_item)
         if items:
             copy = dict(section)
             copy["items"] = items
@@ -679,7 +749,7 @@ def require_access(access_key: str):
 
 def ensure_seed_users() -> None:
     admin = auth.user(ADMIN_EMAIL)
-    if not admin:
+    if not admin or auth.was_deleted(GABI_EMAIL):
         return
     auth.ensure_user_with_password_hash(GABI_EMAIL, admin["password_hash"], role="user", confirmed=True)
     all_keys = [item["key"] for item in all_access_items() if item["key"] != "enriqwe-landing"]
@@ -703,7 +773,6 @@ def index():
     return render_template_string(
         LANDING_HTML,
         sections=sections,
-        featured=visible_featured(current_user, sections),
         current_user=current_user,
         is_admin=auth.is_admin(current_user),
     )
@@ -723,11 +792,48 @@ def permissions():
 @app.post("/permissions")
 @auth.require_admin
 def update_permissions():
+    operation = request.form.get("operation") or "permissions"
     email = request.form.get("email")
-    user = auth.user(email)
-    if not user or user["role"] == "admin":
+
+    if operation == "create":
+        password = request.form.get("password") or ""
+        if len(password) < 6:
+            flash("La contraseña debe tener al menos 6 caracteres.")
+        elif not email:
+            flash("Indica un email.")
+        else:
+            auth.create_or_update_user(email, password, confirmed=True)
+            flash(f"Usuario creado: {auth.clean_email(email)}")
         return redirect(url_for("permissions"))
+
+    user = auth.user(email)
+    if not user:
+        flash("Usuario no encontrado.")
+        return redirect(url_for("permissions"))
+
+    if operation == "password":
+        password = request.form.get("password") or ""
+        if auth.set_user_password(email, password):
+            flash(f"Contraseña actualizada para {auth.clean_email(email)}.")
+        else:
+            flash("No se pudo actualizar la contraseña. Usa al menos 6 caracteres.")
+        return redirect(url_for("permissions"))
+
+    if operation == "delete":
+        if auth.clean_email(email) == auth.clean_email(session.get("user_email")):
+            flash("No puedes eliminar tu propio usuario desde aqui.")
+        elif auth.delete_user(email):
+            flash(f"Usuario eliminado: {auth.clean_email(email)}")
+        else:
+            flash("No se pudo eliminar el usuario.")
+        return redirect(url_for("permissions"))
+
+    if user["role"] == "admin":
+        flash("Los administradores siempre tienen acceso completo.")
+        return redirect(url_for("permissions"))
+
     auth.set_permissions(email, request.form.getlist("access_key"))
+    flash(f"Permisos guardados para {auth.clean_email(email)}.")
     return redirect(url_for("permissions"))
 
 
