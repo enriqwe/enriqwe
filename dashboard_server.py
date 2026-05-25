@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
 import os
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-from flask import Flask, render_template_string
+from flask import Flask, Response, abort, render_template_string, request, send_from_directory
 
 from auth_core import AuthManager, init_user_from_cli
 
 
 BASE_DIR = Path(__file__).resolve().parent
+SITES_DIR = BASE_DIR / "sites"
+STATIC_DASHBOARDS = {
+    "alexia": Path("/home/flow/alexia-bot/facturas-repository"),
+    "gastos": Path("/home/flow/expenses-bot/gastos-repository"),
+}
+
+PROXIES = {
+    "gastos": "http://127.0.0.1:8081",
+}
 
 app = Flask(__name__)
 auth = AuthManager(BASE_DIR, "Enrique")
@@ -25,14 +36,14 @@ SECTIONS = [
             {
                 "name": "Alexia",
                 "description": "Facturas y comunicados del colegio.",
-                "url": "https://enriqwe.github.io/Alexia/",
+                "url": "/alexia/",
                 "repo": "https://github.com/enriqwe/Alexia",
                 "accent": "#14b8a6",
             },
             {
                 "name": "Control de gastos",
                 "description": "Dashboard de movimientos y categorias.",
-                "url": "https://enriqwe.github.io/Gestion-de-Gastos/",
+                "url": "/gastos/",
                 "repo": "https://github.com/enriqwe/Gestion-de-Gastos",
                 "accent": "#f59e0b",
             },
@@ -47,28 +58,28 @@ SECTIONS = [
             {
                 "name": "Editor de Mapas v2",
                 "description": "Herramienta visual para crear mapas.",
-                "url": "https://enriqwe.github.io/Editor-de-Mapas-v2/",
+                "url": "/site/editor-mapas-v2/",
                 "repo": "https://github.com/enriqwe/Editor-de-Mapas-v2",
                 "accent": "#2563eb",
             },
             {
                 "name": "Editor de Mapas",
                 "description": "Version anterior del editor de mapas.",
-                "url": "https://enriqwe.github.io/Editor-de-Mapas/",
+                "url": "/site/editor-mapas/",
                 "repo": "https://github.com/enriqwe/Editor-de-Mapas",
                 "accent": "#0f766e",
             },
             {
                 "name": "Canvas",
                 "description": "Canvas infinito para presentaciones.",
-                "url": "https://enriqwe.github.io/Canvas/",
+                "url": "/site/canvas/",
                 "repo": "https://github.com/enriqwe/Canvas",
                 "accent": "#be185d",
             },
             {
                 "name": "Calendario",
                 "description": "Aplicacion de calendario publicada.",
-                "url": "https://enriqwe.github.io/Calendario/",
+                "url": "/site/calendario/",
                 "repo": "https://github.com/enriqwe/Calendario",
                 "accent": "#0284c7",
             },
@@ -83,21 +94,21 @@ SECTIONS = [
             {
                 "name": "Mision cuerpo humano",
                 "description": "Juego educativo del cuerpo humano.",
-                "url": "https://enriqwe.github.io/mision-cuerpo-humano/",
+                "url": "/site/mision-cuerpo-humano/",
                 "repo": "https://github.com/enriqwe/mision-cuerpo-humano",
                 "accent": "#dc2626",
             },
             {
                 "name": "Juego Frances",
                 "description": "Aprende vocabulario de frances.",
-                "url": "https://enriqwe.github.io/JuegoFrances/",
+                "url": "/site/juego-frances/",
                 "repo": "https://github.com/enriqwe/JuegoFrances",
                 "accent": "#2563eb",
             },
             {
                 "name": "Aprende a escribir",
                 "description": "Practica de escritura con ordenador.",
-                "url": "https://enriqwe.github.io/aprendeaescribir/",
+                "url": "/site/aprende-a-escribir/",
                 "repo": "https://github.com/enriqwe/aprendeaescribir",
                 "accent": "#16a34a",
             },
@@ -126,7 +137,7 @@ SECTIONS = [
             {
                 "name": "Regulacion",
                 "description": "Proyecto publicado en GitHub Pages.",
-                "url": "https://enriqwe.github.io/Regulaci-n/",
+                "url": "/site/regulacion/",
                 "repo": "https://github.com/enriqwe/Regulaci-n",
                 "accent": "#64748b",
             },
@@ -142,9 +153,9 @@ SECTIONS = [
 ]
 
 FEATURED = [
-    ("Alexia", "https://enriqwe.github.io/Alexia/", "Colegio"),
-    ("Gastos", "https://enriqwe.github.io/Gestion-de-Gastos/", "Finanzas"),
-    ("Mapas v2", "https://enriqwe.github.io/Editor-de-Mapas-v2/", "Tool"),
+    ("Alexia", "/alexia/", "Colegio"),
+    ("Gastos", "/gastos/", "Finanzas"),
+    ("Mapas v2", "/site/editor-mapas-v2/", "Tool"),
     ("Juegos", "#juegos", "Seccion"),
 ]
 
@@ -376,6 +387,89 @@ LANDING_HTML = """<!doctype html>
 @auth.require_login
 def index():
     return render_template_string(LANDING_HTML, sections=SECTIONS, featured=FEATURED)
+
+
+def safe_site_path(slug: str, path: str):
+    root = (SITES_DIR / slug).resolve()
+    if not root.is_dir():
+        abort(404)
+    candidate = (root / path).resolve()
+    if root != candidate and root not in candidate.parents:
+        abort(404)
+    if candidate.is_dir():
+        candidate = candidate / "index.html"
+    if not candidate.exists():
+        candidate = root / "index.html"
+    return root, candidate
+
+
+@app.get("/site/<slug>/")
+@app.get("/site/<slug>/<path:path>")
+@auth.require_login
+def site(slug: str, path: str = "index.html"):
+    root, target = safe_site_path(slug, path)
+    if target.name.startswith(".") or any(part.startswith(".") for part in target.relative_to(root).parts):
+        abort(404)
+    return send_from_directory(root, target.relative_to(root))
+
+
+def serve_static_dashboard(name: str, path: str = "index.html"):
+    root = STATIC_DASHBOARDS[name].resolve()
+    target = (root / path).resolve()
+    if root != target and root not in target.parents:
+        abort(404)
+    if target.is_dir():
+        target = target / "index.html"
+    if not target.exists():
+        abort(404)
+    if target.name.startswith(".") or any(part.startswith(".") for part in target.relative_to(root).parts):
+        abort(404)
+    return send_from_directory(root, target.relative_to(root))
+
+
+def proxy_request(base_url: str, path: str = ""):
+    query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
+    url = f"{base_url.rstrip('/')}/{path}{query}"
+    data = request.get_data() if request.method not in {"GET", "HEAD"} else None
+    headers = {
+        key: value
+        for key, value in request.headers.items()
+        if key.lower() not in {"host", "content-length", "connection", "accept-encoding"}
+    }
+    upstream_request = urllib.request.Request(url, data=data, headers=headers, method=request.method)
+    try:
+        with urllib.request.urlopen(upstream_request, timeout=30) as upstream:
+            body = upstream.read()
+            response_headers = [
+                (key, value)
+                for key, value in upstream.headers.items()
+                if key.lower() not in {"connection", "content-length", "transfer-encoding", "content-encoding"}
+            ]
+            return Response(body, status=upstream.status, headers=response_headers)
+    except urllib.error.HTTPError as exc:
+        return Response(exc.read(), status=exc.code)
+    except urllib.error.URLError:
+        return Response("Servicio interno no disponible.", status=502)
+
+
+@app.get("/alexia/")
+@app.get("/alexia/<path:path>")
+@auth.require_login
+def alexia_dashboard(path: str = "index.html"):
+    return serve_static_dashboard("alexia", path or "index.html")
+
+
+@app.get("/gastos/")
+@app.get("/gastos/<path:path>")
+@auth.require_login
+def gastos_dashboard(path: str = "index.html"):
+    return serve_static_dashboard("gastos", path or "index.html")
+
+
+@app.route("/upload", methods=["POST"])
+@auth.require_login
+def gastos_upload_proxy():
+    return proxy_request(PROXIES["gastos"], "upload")
 
 
 def main():
