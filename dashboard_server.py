@@ -15,91 +15,137 @@ auth = AuthManager(BASE_DIR, "Enrique")
 auth.init_app(app)
 
 
-APPS = [
+SECTIONS = [
     {
-        "name": "Alexia",
-        "description": "Facturas y comunicados del colegio.",
-        "url": "https://enriqwe.github.io/Alexia/",
-        "repo": "https://github.com/enriqwe/Alexia",
-        "accent": "#2dd4bf",
+        "id": "familia",
+        "title": "Finanzas y colegio",
+        "summary": "Lo operativo: pagos, comunicados y control diario.",
+        "accent": "#12b981",
+        "items": [
+            {
+                "name": "Alexia",
+                "description": "Facturas y comunicados del colegio.",
+                "url": "https://enriqwe.github.io/Alexia/",
+                "repo": "https://github.com/enriqwe/Alexia",
+                "accent": "#14b8a6",
+            },
+            {
+                "name": "Control de gastos",
+                "description": "Dashboard de movimientos y categorias.",
+                "url": "https://enriqwe.github.io/Gestion-de-Gastos/",
+                "repo": "https://github.com/enriqwe/Gestion-de-Gastos",
+                "accent": "#f59e0b",
+            },
+        ],
     },
     {
-        "name": "Control de gastos",
-        "description": "Dashboard de movimientos y categorias.",
-        "url": "https://enriqwe.github.io/Gestion-de-Gastos/",
-        "repo": "https://github.com/enriqwe/Gestion-de-Gastos",
-        "accent": "#f59e0b",
-    },
-    {
-        "name": "Mision cuerpo humano",
-        "description": "Juego educativo publicado en GitHub Pages.",
-        "url": "https://enriqwe.github.io/mision-cuerpo-humano/",
-        "repo": "https://github.com/enriqwe/mision-cuerpo-humano",
-        "accent": "#ef4444",
-    },
-    {
-        "name": "Juego Frances",
-        "description": "Practica visual de frances.",
-        "url": "https://enriqwe.github.io/JuegoFrances/",
-        "repo": "https://github.com/enriqwe/JuegoFrances",
+        "id": "tools",
+        "title": "Tools de trabajo",
+        "summary": "Herramientas para crear, organizar y presentar.",
         "accent": "#3b82f6",
+        "items": [
+            {
+                "name": "Editor de Mapas v2",
+                "description": "Herramienta visual para crear mapas.",
+                "url": "https://enriqwe.github.io/Editor-de-Mapas-v2/",
+                "repo": "https://github.com/enriqwe/Editor-de-Mapas-v2",
+                "accent": "#2563eb",
+            },
+            {
+                "name": "Editor de Mapas",
+                "description": "Version anterior del editor de mapas.",
+                "url": "https://enriqwe.github.io/Editor-de-Mapas/",
+                "repo": "https://github.com/enriqwe/Editor-de-Mapas",
+                "accent": "#0f766e",
+            },
+            {
+                "name": "Canvas",
+                "description": "Canvas infinito para presentaciones.",
+                "url": "https://enriqwe.github.io/Canvas/",
+                "repo": "https://github.com/enriqwe/Canvas",
+                "accent": "#be185d",
+            },
+            {
+                "name": "Calendario",
+                "description": "Aplicacion de calendario publicada.",
+                "url": "https://enriqwe.github.io/Calendario/",
+                "repo": "https://github.com/enriqwe/Calendario",
+                "accent": "#0284c7",
+            },
+        ],
     },
     {
-        "name": "Aprende a escribir",
-        "description": "Actividad para practicar escritura.",
-        "url": "https://enriqwe.github.io/aprendeaescribir/",
-        "repo": "https://github.com/enriqwe/aprendeaescribir",
-        "accent": "#22c55e",
+        "id": "juegos",
+        "title": "Juegos",
+        "summary": "Aprendizaje y practica visual para entrar directo.",
+        "accent": "#ef4444",
+        "items": [
+            {
+                "name": "Mision cuerpo humano",
+                "description": "Juego educativo del cuerpo humano.",
+                "url": "https://enriqwe.github.io/mision-cuerpo-humano/",
+                "repo": "https://github.com/enriqwe/mision-cuerpo-humano",
+                "accent": "#dc2626",
+            },
+            {
+                "name": "Juego Frances",
+                "description": "Aprende vocabulario de frances.",
+                "url": "https://enriqwe.github.io/JuegoFrances/",
+                "repo": "https://github.com/enriqwe/JuegoFrances",
+                "accent": "#2563eb",
+            },
+            {
+                "name": "Aprende a escribir",
+                "description": "Practica de escritura con ordenador.",
+                "url": "https://enriqwe.github.io/aprendeaescribir/",
+                "repo": "https://github.com/enriqwe/aprendeaescribir",
+                "accent": "#16a34a",
+            },
+            {
+                "name": "Cosmotablas1",
+                "description": "Aprende a multiplicar en el espacio.",
+                "url": "https://cosmotablas1.vercel.app",
+                "repo": "https://github.com/enriqwe/Cosmotablas1",
+                "accent": "#7c3aed",
+            },
+            {
+                "name": "Cosmotablas",
+                "description": "Repositorio de Cosmotablas.",
+                "url": "https://github.com/enriqwe/Cosmotablas",
+                "repo": "https://github.com/enriqwe/Cosmotablas",
+                "accent": "#0891b2",
+            },
+        ],
     },
     {
-        "name": "Editor de Mapas v2",
-        "description": "Herramienta visual para crear mapas.",
-        "url": "https://enriqwe.github.io/Editor-de-Mapas-v2/",
-        "repo": "https://github.com/enriqwe/Editor-de-Mapas-v2",
-        "accent": "#a855f7",
-    },
-    {
-        "name": "Editor de Mapas",
-        "description": "Version anterior del editor de mapas.",
-        "url": "https://enriqwe.github.io/Editor-de-Mapas/",
-        "repo": "https://github.com/enriqwe/Editor-de-Mapas",
-        "accent": "#8b5cf6",
-    },
-    {
-        "name": "Calendario",
-        "description": "Aplicacion de calendario publicada.",
-        "url": "https://enriqwe.github.io/Calendario/",
-        "repo": "https://github.com/enriqwe/Calendario",
-        "accent": "#06b6d4",
-    },
-    {
-        "name": "Canvas",
-        "description": "Experimentos y utilidades de canvas.",
-        "url": "https://enriqwe.github.io/Canvas/",
-        "repo": "https://github.com/enriqwe/Canvas",
-        "accent": "#ec4899",
-    },
-    {
-        "name": "Regulacion",
-        "description": "Proyecto publicado en GitHub Pages.",
-        "url": "https://enriqwe.github.io/Regulaci-n/",
-        "repo": "https://github.com/enriqwe/Regulaci-n",
+        "id": "otros",
+        "title": "Otros proyectos",
+        "summary": "Repositorios publicados o utiles como referencia.",
         "accent": "#64748b",
+        "items": [
+            {
+                "name": "Regulacion",
+                "description": "Proyecto publicado en GitHub Pages.",
+                "url": "https://enriqwe.github.io/Regulaci-n/",
+                "repo": "https://github.com/enriqwe/Regulaci-n",
+                "accent": "#64748b",
+            },
+            {
+                "name": "Enriqwe landing",
+                "description": "Repositorio de esta landing privada.",
+                "url": "https://github.com/enriqwe/enriqwe",
+                "repo": "https://github.com/enriqwe/enriqwe",
+                "accent": "#475569",
+            },
+        ],
     },
-    {
-        "name": "Cosmotablas1",
-        "description": "Web principal publicada en Vercel.",
-        "url": "https://cosmotablas1.vercel.app",
-        "repo": "https://github.com/enriqwe/Cosmotablas1",
-        "accent": "#14b8a6",
-    },
-    {
-        "name": "Cosmotablas",
-        "description": "Repositorio de Cosmotablas.",
-        "url": "https://enriqwe.github.io/Cosmotablas/",
-        "repo": "https://github.com/enriqwe/Cosmotablas",
-        "accent": "#0ea5e9",
-    },
+]
+
+FEATURED = [
+    ("Alexia", "https://enriqwe.github.io/Alexia/", "Colegio"),
+    ("Gastos", "https://enriqwe.github.io/Gestion-de-Gastos/", "Finanzas"),
+    ("Mapas v2", "https://enriqwe.github.io/Editor-de-Mapas-v2/", "Tool"),
+    ("Juegos", "#juegos", "Seccion"),
 ]
 
 
@@ -112,23 +158,23 @@ LANDING_HTML = """<!doctype html>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b1020;
-      --panel: #111827;
-      --panel-2: #172033;
-      --line: #26324a;
-      --text: #eef4ff;
-      --muted: #aab7d4;
-      --brand: #38bdf8;
-      --ok: #2dd4bf;
+      --bg: #0c111d;
+      --panel: #121826;
+      --panel-2: #182132;
+      --line: #273244;
+      --text: #f3f6fb;
+      --muted: #9aa7bb;
+      --brand: #e8b44f;
+      --ok: #12b981;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 12% 12%, rgba(56,189,248,.18), transparent 28%),
-        radial-gradient(circle at 80% 0%, rgba(45,212,191,.16), transparent 24%),
-        linear-gradient(135deg, #080c18 0%, #111827 48%, #0b1020 100%);
+        linear-gradient(180deg, rgba(232,180,79,.10), transparent 320px),
+        linear-gradient(135deg, #0c111d 0%, #141b2a 48%, #0c111d 100%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
@@ -138,8 +184,8 @@ LANDING_HTML = """<!doctype html>
       justify-content: space-between;
       gap: 16px;
       padding: 24px clamp(18px, 4vw, 48px);
-      border-bottom: 1px solid rgba(148,163,184,.16);
-      background: rgba(8,12,24,.72);
+      border-bottom: 1px solid rgba(148,163,184,.18);
+      background: rgba(12,17,29,.86);
       backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
@@ -152,12 +198,12 @@ LANDING_HTML = """<!doctype html>
       border-radius: 12px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, var(--brand), var(--ok));
-      color: #07111f;
+      background: var(--brand);
+      color: #17120a;
       font-weight: 900;
       font-size: 21px;
     }
-    h1 { margin: 0; font-size: clamp(24px, 4vw, 44px); letter-spacing: 0; }
+    h1 { margin: 0; font-size: clamp(24px, 4vw, 40px); letter-spacing: 0; }
     .subtitle { color: var(--muted); margin-top: 3px; font-size: 14px; }
     .logout {
       border: 1px solid var(--line);
@@ -168,24 +214,25 @@ LANDING_HTML = """<!doctype html>
       font-weight: 700;
       cursor: pointer;
     }
-    main { width: min(1180px, calc(100vw - 32px)); margin: 34px auto 54px; }
+    main { width: min(1220px, calc(100vw - 32px)); margin: 28px auto 54px; }
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .78fr);
       gap: 18px;
       align-items: stretch;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
-    .summary, .quick {
+    .summary, .quick, .section {
       border: 1px solid var(--line);
-      background: rgba(17,24,39,.78);
+      background: rgba(18,24,38,.86);
       border-radius: 8px;
-      padding: clamp(18px, 3vw, 28px);
-      box-shadow: 0 18px 60px rgba(0,0,0,.28);
+      box-shadow: 0 18px 50px rgba(0,0,0,.24);
     }
+    .summary { padding: clamp(22px, 4vw, 38px); }
     .summary h2 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 58px); line-height: 1.02; letter-spacing: 0; }
     .summary p { margin: 0; color: var(--muted); max-width: 720px; line-height: 1.55; font-size: 16px; }
-    .quick { display: grid; align-content: center; gap: 12px; }
+    .quick { display: grid; align-content: center; gap: 10px; padding: 16px; }
+    .quick-title { color: var(--muted); font-size: 13px; font-weight: 800; text-transform: uppercase; }
     .quick a {
       display: flex;
       justify-content: space-between;
@@ -194,25 +241,50 @@ LANDING_HTML = """<!doctype html>
       color: var(--text);
       text-decoration: none;
       border: 1px solid var(--line);
-      background: rgba(11,16,32,.78);
+      background: rgba(12,17,29,.74);
       border-radius: 8px;
       padding: 14px 15px;
       font-weight: 800;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 14px; }
+    .quick a:hover, .card:hover { border-color: rgba(232,180,79,.55); transform: translateY(-1px); }
+    .section { margin-top: 18px; padding: 18px; scroll-margin-top: 102px; }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(148,163,184,.14);
+      padding-bottom: 14px;
+    }
+    .section h2 { margin: 0; font-size: clamp(22px, 3vw, 32px); letter-spacing: 0; }
+    .section p { margin: 6px 0 0; color: var(--muted); line-height: 1.45; }
+    .count {
+      flex: 0 0 auto;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--section-accent);
+      background: rgba(12,17,29,.7);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
     .card {
-      min-height: 190px;
+      min-height: 176px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(23,32,51,.9), rgba(17,24,39,.88));
+      background: linear-gradient(180deg, rgba(24,33,50,.95), rgba(15,21,34,.94));
       border-radius: 8px;
-      padding: 18px;
+      padding: 16px;
       text-decoration: none;
       color: var(--text);
       position: relative;
       overflow: hidden;
+      transition: border-color .16s ease, transform .16s ease;
     }
     .card::before {
       content: "";
@@ -221,7 +293,7 @@ LANDING_HTML = """<!doctype html>
       height: 5px;
       background: var(--accent);
     }
-    .card h3 { margin: 10px 0 8px; font-size: 21px; letter-spacing: 0; }
+    .card h3 { margin: 10px 0 8px; font-size: 20px; letter-spacing: 0; }
     .card p { margin: 0; color: var(--muted); line-height: 1.45; }
     .actions { display: flex; gap: 10px; margin-top: 18px; }
     .button {
@@ -236,10 +308,11 @@ LANDING_HTML = """<!doctype html>
       font-size: 14px;
     }
     .primary { background: var(--accent); color: #07111f; }
-    .secondary { border: 1px solid var(--line); color: var(--text); background: rgba(11,16,32,.74); }
+    .secondary { border: 1px solid var(--line); color: var(--text); background: rgba(12,17,29,.74); }
     @media (max-width: 760px) {
-      header { align-items: flex-start; }
+      header { align-items: flex-start; padding: 16px; }
       .hero { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
       .subtitle { font-size: 13px; }
       .logout { padding: 9px 10px; }
     }
@@ -259,29 +332,41 @@ LANDING_HTML = """<!doctype html>
   <main>
     <section class="hero">
       <div class="summary">
-        <h2>Tus webs en un solo sitio.</h2>
-        <p>Accede desde aqui a Alexia, control de gastos y todos los proyectos publicados en tus repositorios de GitHub.</p>
+        <h2>Todo a dos clics.</h2>
+        <p>Accesos privados a colegio, finanzas, tools y juegos. Las secciones estan pensadas para abrir rapido lo que necesitas sin buscar entre repositorios.</p>
       </div>
       <nav class="quick" aria-label="Accesos principales">
-        <a href="https://enriqwe.github.io/Alexia/">Alexia <span>-></span></a>
-        <a href="https://enriqwe.github.io/Gestion-de-Gastos/">Control de gastos <span>-></span></a>
-        <a href="https://github.com/enriqwe">Repositorios <span>-></span></a>
+        <div class="quick-title">Accesos rapidos</div>
+        {% for name, url, label in featured %}
+        <a href="{{ url }}"><span>{{ name }}</span><small>{{ label }} -></small></a>
+        {% endfor %}
       </nav>
     </section>
-    <section class="grid" aria-label="Todas las webs">
-      {% for app in apps %}
-      <article class="card" style="--accent: {{ app.accent }}">
+    {% for section in sections %}
+    <section class="section" id="{{ section.id }}" style="--section-accent: {{ section.accent }}" aria-labelledby="{{ section.id }}-title">
+      <div class="section-head">
         <div>
-          <h3>{{ app.name }}</h3>
-          <p>{{ app.description }}</p>
+          <h2 id="{{ section.id }}-title">{{ section.title }}</h2>
+          <p>{{ section.summary }}</p>
         </div>
-        <div class="actions">
-          <a class="button primary" href="{{ app.url }}">Abrir</a>
-          <a class="button secondary" href="{{ app.repo }}">Repo</a>
-        </div>
-      </article>
-      {% endfor %}
+        <div class="count">{{ section["items"]|length }} accesos</div>
+      </div>
+      <div class="grid">
+        {% for app in section["items"] %}
+        <article class="card" style="--accent: {{ app.accent }}">
+          <div>
+            <h3>{{ app.name }}</h3>
+            <p>{{ app.description }}</p>
+          </div>
+          <div class="actions">
+            <a class="button primary" href="{{ app.url }}">Abrir</a>
+            <a class="button secondary" href="{{ app.repo }}">Repo</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
     </section>
+      {% endfor %}
   </main>
 </body>
 </html>"""
@@ -290,7 +375,7 @@ LANDING_HTML = """<!doctype html>
 @app.get("/")
 @auth.require_login
 def index():
-    return render_template_string(LANDING_HTML, apps=APPS)
+    return render_template_string(LANDING_HTML, sections=SECTIONS, featured=FEATURED)
 
 
 def main():
