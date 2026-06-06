@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from flask import Flask, Response, abort, flash, redirect, render_template_string, request, send_from_directory, session, url_for
+from flask import Flask, Response, abort, flash, jsonify, redirect, render_template_string, request, send_from_directory, session, url_for
 
 from auth_core import AuthManager, init_user_from_cli
 
@@ -18,6 +18,7 @@ STATIC_DASHBOARDS = {
     "gastos": Path("/home/flow/expenses-bot/gastos-repository"),
 }
 COMUNICADOS_FILE = Path("/home/flow/alexia-bot/repository/comunicados.json")
+TODO_DATA_PATH = BASE_DIR / "state" / "onevenue-todo-tasks.json"
 
 PROXIES = {
     "gastos": "http://127.0.0.1:8081",
@@ -980,6 +981,55 @@ def alexia_pdf_legacy(path: str):
 def gastos_dashboard(path: str = "index.html"):
     require_access("gastos")
     return serve_static_dashboard("gastos", path or "index.html")
+
+
+def todo_short_text(value, max_len=500):
+    return str(value or "").strip()[:max_len]
+
+
+def normalize_todo_task(task, index):
+    statuses = {"ahora", "siguiente", "espera", "hecho"}
+    priorities = {"alta", "media", "baja"}
+    return {
+        "id": todo_short_text(task.get("id"), 80) or f"task-{index + 1}",
+        "title": todo_short_text(task.get("title"), 500) or "Tarea sin titulo",
+        "note": todo_short_text(task.get("note"), 1000),
+        "priority": task.get("priority") if task.get("priority") in priorities else "media",
+        "status": task.get("status") if task.get("status") in statuses else "ahora",
+        "rank": task.get("rank") if isinstance(task.get("rank"), (int, float)) else (index + 1) * 100,
+        "createdAt": todo_short_text(task.get("createdAt"), 80),
+    }
+
+
+def read_todo_tasks():
+    if not TODO_DATA_PATH.exists():
+        return []
+    data = json.loads(TODO_DATA_PATH.read_text(encoding="utf-8"))
+    tasks = data.get("tasks", data if isinstance(data, list) else [])
+    if not isinstance(tasks, list):
+        return []
+    return [normalize_todo_task(task, index) for index, task in enumerate(tasks) if isinstance(task, dict)]
+
+
+@app.get("/api/onevenue-todo/tasks")
+@auth.require_login
+def onevenue_todo_tasks_get():
+    require_access("onevenue-todo")
+    return jsonify({"tasks": read_todo_tasks()})
+
+
+@app.put("/api/onevenue-todo/tasks")
+@auth.require_login
+def onevenue_todo_tasks_put():
+    require_access("onevenue-todo")
+    payload = request.get_json(silent=True) or {}
+    raw_tasks = payload.get("tasks", [])
+    if not isinstance(raw_tasks, list) or len(raw_tasks) > 500:
+        return jsonify({"ok": False, "error": "Lista de tareas invalida."}), 400
+    tasks = [normalize_todo_task(task, index) for index, task in enumerate(raw_tasks) if isinstance(task, dict)]
+    TODO_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TODO_DATA_PATH.write_text(json.dumps({"tasks": tasks}, ensure_ascii=False, indent=2), encoding="utf-8")
+    return jsonify({"ok": True, "tasks": tasks})
 
 
 @app.route("/upload", methods=["POST"])
