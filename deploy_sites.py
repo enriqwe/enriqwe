@@ -16,6 +16,7 @@ STATIC_SITES = {
     "editor-mapas-v2": "Editor-de-Mapas-v2",
     "juego-frances": "JuegoFrances",
     "mision-cuerpo-humano": "mision-cuerpo-humano",
+    "onevenue-todo": "onevenue-todo",
     "regulacion": "Regulaci-n",
 }
 

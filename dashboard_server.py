@@ -110,6 +110,15 @@ SECTIONS = [
                 "accent": "#0284c7",
                 "icon": "📅",
             },
+            {
+                "key": "onevenue-todo",
+                "name": "OneVenue To-Do",
+                "description": "Tablero privado para ordenar y tachar tareas de trabajo.",
+                "url": "/site/onevenue-todo/",
+                "repo": "https://github.com/enriqwe/onevenue-todo",
+                "accent": "#1769e0",
+                "icon": "✅",
+            },
         ],
     },
     {
@@ -192,6 +201,7 @@ SITE_ACCESS = {
     "editor-mapas-v2": "editor-mapas-v2",
     "juego-frances": "juego-frances",
     "mision-cuerpo-humano": "mision-cuerpo-humano",
+    "onevenue-todo": "onevenue-todo",
     "regulacion": "regulacion",
 }
 
@@ -203,6 +213,7 @@ ICONS = {
     "editor-mapas": '<path d="M12 21s7-5 7-11a7 7 0 1 0-14 0c0 6 7 11 7 11z"></path><circle cx="12" cy="10" r="2"></circle>',
     "canvas": '<path d="M4 20h16"></path><path d="M6 18l10-10 2 2L8 20H6v-2z"></path><path d="M14 6l2-2 4 4-2 2"></path>',
     "calendario": '<rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M4 10h16"></path>',
+    "onevenue-todo": '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>',
     "mision-cuerpo-humano": '<path d="M12 3a4 4 0 0 0-4 4v3a4 4 0 0 0 8 0V7a4 4 0 0 0-4-4z"></path><path d="M6 21v-3a6 6 0 0 1 12 0v3"></path><path d="M9 10h6"></path>',
     "juego-frances": '<path d="M5 5h14v14H5z"></path><path d="M8 9h8"></path><path d="M8 13h5"></path><path d="M15 13l2 3"></path>',
     "aprende-a-escribir": '<path d="M4 20h16"></path><path d="M7 16l8-8 3 3-8 8H7v-3z"></path><path d="M14 7l3 3"></path>',
